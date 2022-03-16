@@ -1,0 +1,19 @@
+# Python virtual environment
+.venv
+
+# Visual studio config files
+*.code-workspace
+.vscode
+
+# Data
+data/*
+!data/.gitkeep
+
+# Notebooks
+notebooks/playground.ipynb
+
+# Notes
+notes/*
+
+# Hydra config runs
+outputs
