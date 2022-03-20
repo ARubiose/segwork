@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from typing import Callable, Optional
+from torch import Tensor
 
 import torch.nn as nn
 from omegaconf import DictConfig
