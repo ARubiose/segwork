@@ -4,7 +4,9 @@ from enum import Enum
 from typing import Tuple
 
 class Styles():
-    """Style Enum class"""
+    """Style Enum class
+    
+    #TODO Implement the rest of styles"""
     DIAGRAM_TYPES = ['flowchart']
     ORIENTATION_TYPES = ['TB', 'TD', 'BT', 'RL', 'LR']
 
@@ -30,6 +32,7 @@ class TorchFxStyle(MermaidStyle):
     diagram:str = 'flowchart'
     orientation:str = field(default='TB')
 
+    # Links between styles and token.
     placeholder = {'shape':Styles.ROUND_EDGES}
 
     call_module = {'node':{'shape':Styles.ROUND_EDGES}, 
