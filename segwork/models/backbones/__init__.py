@@ -1,13 +1,11 @@
-import logging
-import torch.nn as nn
-import timm
+"""The segwork.models.backbone package provides reusable modules
 
-logger = logging.getLogger(__name__)
+Backbone could be a single encoder, a multi-stream encoder (e.g. RGB-D)
 
-def get_timm_backbone(name:str, **kwargs) -> nn.Module:
-    try:
-        backbone = timm.create_model(model_name=name, features_only=True, **kwargs)
-    except:
-        logger.error(f'Backbone not available: {name}')
-        
-    return backbone
+
+
+Returns:
+    _type_: _description_
+"""
+
+from .base import *

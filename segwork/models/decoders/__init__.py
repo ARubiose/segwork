@@ -5,8 +5,7 @@ import torch
 import torch.nn as nn
 from timm.models.layers import create_conv2d, get_act_layer
 
-from segwork.models.blocks.base import ConvBnAct
-from segwork.models.blocks.upsample import Interpolate2d
+from segwork.models.layers.upsample import Interpolate2d
 
 def get_decoder_block():
     pass
@@ -35,7 +34,7 @@ class DecoderBlock(nn.Module):
         layers = []
         for i in range(len(out_channels)):
             layers.append(
-                ConvBnAct(channels[i], channels[i+1], kernel_size=kernel_size, 
+                get_(channels[i], channels[i+1], kernel_size=kernel_size, 
                 norm_layer=norm_layer, act_layer=act_layer))
 
         self.blocks = nn.Sequential(*layers)
