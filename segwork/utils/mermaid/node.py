@@ -1,4 +1,4 @@
-"""Simple nodes """
+"""Mermaid nodes"""
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import List, Tuple, Union

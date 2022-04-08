@@ -1,6 +1,6 @@
 flowchart TB
 	title[<u>timm/resnet18</u>]
-    style title fill:#FFF,stroke:#FFF
+style title fill:#FFF,stroke:#FFF
 	x(x)
 	conv1("Conv2d[3, 64, kernel_size=[7, 7], stride=[2, 2], padding=[3, 3], bias=False]")
 	x -->conv1 

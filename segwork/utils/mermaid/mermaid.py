@@ -1,24 +1,21 @@
 from abc import ABC, abstractmethod
 import base64
-from copy import copy
 from dataclasses import dataclass, field
 from functools import partial
+import logging
 import os
-from typing import Dict
 
 import torch
 import torch.nn as nn
 from torch.fx import symbolic_trace
 from IPython.display import Image, display
 
+from segwork.utils.mermaid.style import MermaidStyle, TorchFxStyle, Styles
 from segwork.utils.mermaid.node import MermaidNode
-from segwork.utils.mermaid.style import MermaidStyle
 from segwork.utils.mermaid.token import MermaidToken, MermaidTokenFunction, MermaidTokenPlaceholder
 
-DIAGRAM_TYPES = []
-ORIENTATION_TYPES = ['TB', 'TD', 'BT', 'RL', 'LR']
+logger = logging.getLogger(__name__)
        
-    
 @dataclass
 class MermaidGraph:
 
@@ -27,31 +24,30 @@ class MermaidGraph:
     orientation:str = 'TB'
     nodes:list[MermaidNode] = field(default_factory=list)
 
-    def __post__init(self):
-        if self.orientation not in ORIENTATION_TYPES:
+    def __post__init__(self):
+        if self.orientation not in Styles.ORIENTATION_TYPES:
             self.orientation = 'TB'
             raise ValueError(f'Invalid orientation {self.orientation}. \
                                 Set default: TB \
-                                Valid orientations: {ORIENTATION_TYPES}')
+                                Valid orientations: {Styles.ORIENTATION_TYPES}')
 
     def _save(self, path:str=None):
         """Generte text document of diagram"""
         path = path or os.path.join(os.getcwd(), 'mermaid.md')
         try:
             with open(path, 'x') as f:
-                # Type and orientation
-                f.write(f'{self.type} {self.orientation}\n')
-                # Title
-                f.write(self.create_title())
-                # Nodes and links
-                for node in self.nodes:
+                f.write(f'{self.type} {self.orientation}\n') # Type and orientation
+                f.write(self.create_title()) # Title
+                for node in self.nodes: # Nodes and links
                     f.write(f'\t{node.representation()}')
         except FileExistsError as e:
-            print(f'{e}')
+            logger.warn('File {path} already exist. Delete the file or change name before saving.')
         return True
 
     def _display(self, path:str=None):
-        """Display graph"""
+        """Display graph
+        
+        #FIXME Create raw string and display"""
         path = path or os.path.join(os.getcwd(), 'mermaid.md')
         try:
             with open(path, 'r') as f:
@@ -62,6 +58,7 @@ class MermaidGraph:
                 display(Image(url="https://mermaid.ink/img/" + base64_string))
                 
         except FileNotFoundError as e:
+            logger.info(f'File {path} not found. Saving file...')
             self._save(path)
             self._display(path)
 
@@ -74,14 +71,12 @@ class MermaidGraph:
     def create_title(self) -> str:
         """Return styled title in str format"""
         return f'\ttitle[<u>{self.name}</u>]\nstyle title fill:#FFF,stroke:#FFF\n'
-
-
         
 class MermaidParser(ABC):
     """Base abstract class"""
 
     def __init__(self, name:str, style_map:MermaidStyle) -> None:
-        self.style_map = style_map
+        self.style_map = style_map 
         self._tokens:list[MermaidToken]= list()
         self.diagram = MermaidGraph(name=name, type=style_map.diagram , orientation=style_map.orientation)
         
@@ -122,7 +117,9 @@ class TorchFXParser(MermaidParser):
         'output': MermaidTokenFunction
     }
 
-    def __init__(self, name:str, style_map:MermaidStyle, module:nn.Module = None, **kwargs)-> None:
+    def __init__(self, name:str, style_map:MermaidStyle = None, module:nn.Module = None, **kwargs)-> None:
+        if not style_map:
+            style_map = TorchFxStyle()
         super().__init__(name, style_map)
         if module: self.tokenize(module)
 
