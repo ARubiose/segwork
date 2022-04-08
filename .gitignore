@@ -18,10 +18,13 @@ data/*
 !data/.gitkeep
 
 # Notebooks
-notebooks/playground.ipynb
+notebooks/*
 
 # Notes
 notes/*
 
 # Hydra config runs
 outputs
+
+# Editable package under development
+*.egg-info
