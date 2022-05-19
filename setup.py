@@ -6,8 +6,8 @@ setup(
    description='A useful framework for semantic segmentation',
    author='Alvaro Rubio',
    author_email='alvaro.rubio.segovia"gmail.com',
-   url='https://github.com/pypa/sampleproject',
+   url='https://github.com/ARubiose/segwork',
    keywords="deep learning, semantic segmentation, development", 
    packages=find_packages(include=['segwork', 'segwork.*']),
-   install_requires=['timm'], #external packages as dependencies
+   # install_requires=['timm'], #external packages as dependencies
 )

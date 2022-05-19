@@ -1,21 +1,31 @@
+"""https://pytorch.org/tutorials/beginner/basics/data_tutorial.html
+
+https://pytorch.org/vision/stable/io.html#image
+"""
+
+from abc import abstractmethod
 from typing import Any, Callable, Optional, Tuple
+
 from torch import Tensor
 from torchvision.datasets import VisionDataset
+from torchvision.io import read_image
+
+
 
 class WeightCalculator:
     pass
 
 class SegmentationDataset(VisionDataset):
-    """_summary_
-
+    """Common interface to describe segmentation datasets
     Args:
         VisionDataset (_type_): _description_
     """
     def __init__(
         self,
         root: str,
-        image_set: str = "train",
+        split: str = "train",
         download: bool = False,
+        download_fn: Callable = None,
         transform: Optional[Callable] = None,
         target_transform: Optional[Callable] = None,
         transforms: Optional[Callable] = None,
@@ -27,6 +37,20 @@ class SegmentationDataset(VisionDataset):
         pass
 
     def __len__(self):
+        pass
+
+    def get_mask(self, index:int):
+        pass
+
+    def num_classes(self):
+        pass
+
+    @abstractmethod
+    def mask_colors(self):
+        pass
+
+    @property
+    def classes(self):
         pass
 
     def compute_class_weights(self, calculator:WeightCalculator):
