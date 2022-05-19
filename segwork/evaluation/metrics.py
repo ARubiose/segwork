@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+import torch
+
 
 @dataclass
 class ConfusionMatrix:
@@ -10,7 +12,8 @@ class ConfusionMatrix:
     FP : int = 0
     FN : int = 0
 
-    def update(self, ground_truth, mask) -> None:
+    def update(self, ground_truth :torch.Tensor, mask:torch.Tensor, argmax:bool = False, **kwargs) -> None:
+        
         pass
 
     def accuracy(self):

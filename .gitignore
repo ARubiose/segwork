@@ -19,6 +19,7 @@ data/*
 
 # Notebooks
 notebooks/*
+!notebooks/playground.ipynb
 
 # Notes
 notes/*
