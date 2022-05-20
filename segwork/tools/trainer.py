@@ -17,6 +17,7 @@ class AbstractTrainer(ABC):
         *   Model building -> Function that returns a model
         *   Optimizer building -> Function that returns an optimizer
         *   Training process -> Function for updating the model (epoch function) -> Returns metrics
+        *   Validation step -> Function to validate model during training
         *   Log results (params: epoch) -> Function to record metrics. Make use of logger
 
     Events? | Hook configuration files to methods
@@ -26,3 +27,7 @@ class AbstractTrainer(ABC):
     def run(self, *args, **kwargs):
         """Run trainer"""
         pass
+
+class AbstractEvaluator(ABC):
+    """Abstract class for evaluating models"""
+    pass

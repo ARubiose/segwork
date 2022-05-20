@@ -56,43 +56,20 @@ def conv1x1(in_channels: int, out_channels: int, stride: int = 1, **kwargs) -> n
         bias=False,
         **kwargs)
 
-def ConvBnAct():
-    """ Layer Conv + BN + Act"""
-
-class PPM(nn.Module):
-    """Pyramid pooling module 
-    
-    'Pyramid Scene Parsing Network' -->  https://arxiv.org/pdf/1612.01105v2.pdf
-
-    The pyramid pooling module fuses features under `len(bins)` different pyramid scales.
-    Args:
-        in_dim
-"""
-    def __init__(self, 
-            in_channels:int, 
-            out_scale_channels: Union[int, Tuple[int]], 
-            bins: Tuple[int]):
-        super(PPM, self).__init__()
-        
-        # Sanity check - Raise errors
-        self._sanity_check()
-        self.features = []
-        for bin in bins:
-            self.features.append(nn.Sequential(
-                # Average pooling works better than max pooling in all settings
-                nn.AdaptiveAvgPool2d(bin),
-                nn.Conv2d(in_channels, out_scale_channels, kernel_size=1, bias=False),
-                nn.BatchNorm2d(out_scale_channels),
-                nn.ReLU(inplace=True)
-            ))
-        self.features = nn.ModuleList(self.features)
-
-    def _sanity_check(self, out_dim, bins) -> bool:
-        pass #TODO
+class ConvBnAct(nn.Module):
+    """ Block: Conv + BatchNormalization + activation """
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, dilation=1, padding='', bias=False,
+                 norm_layer=nn.BatchNorm2d, act_layer=nn.ReLU):
+        super(ConvBnAct, self).__init__()
+        self.conv = nn.Conv2d(
+            in_channels, out_channels, kernel_size, stride=stride, dilation=dilation, padding=padding, bias=bias)
+        self.bn = None if norm_layer is None else norm_layer(out_channels)
+        self.act = None if act_layer is None else act_layer(inplace=True)
 
     def forward(self, x):
-        x_size = x.size()
-        out = [x]
-        for f in self.features:
-            out.append(F.interpolate(f(x), x_size[2:], mode='bilinear', align_corners=True))
-        return torch.cat(out, 1)
+        x = self.conv(x)
+        if self.bn is not None:
+            x = self.bn(x)
+        if self.act is not None:
+            x = self.act(x)
+        return x

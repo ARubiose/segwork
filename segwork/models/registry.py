@@ -1,5 +1,7 @@
 from abc import  abstractmethod
 import logging
+import inspect 
+
 import torch.nn as nn
 
 # Logger
@@ -24,8 +26,10 @@ class BaseRegistry(type):
         return dict(cls.REGISTRY)
 
     @classmethod
-    def add_register(cls, cls_entry):
+    def add_register(cls, entry):
+        cls_entry = entry if inspect.isclass(entry) else entry.__class__
         cls.REGISTRY.update({cls_entry.__name__:cls_entry})
+
 
 # Model registry
 class ModelRegistry(BaseRegistry):

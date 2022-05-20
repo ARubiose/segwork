@@ -15,6 +15,7 @@ from torchvision.io import read_image
 class WeightCalculator:
     pass
 
+
 class SegmentationDataset(VisionDataset):
     """Common interface to describe segmentation datasets
     Args:
@@ -32,16 +33,16 @@ class SegmentationDataset(VisionDataset):
         # split
     ):
         super().__init__(root, transforms, transform, target_transform)
-
-    def __getitem__(self, index: int) -> Tuple[str, str, ]:
-        pass
-
-    def __len__(self):
+    
+    def get_image(self, index:int):
         pass
 
     def get_mask(self, index:int):
         pass
 
+    def classes(self):
+        pass
+    
     def num_classes(self):
         pass
 
