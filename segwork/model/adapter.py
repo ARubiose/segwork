@@ -1,10 +1,7 @@
+from segwork.model.backbone.base import BackboneMixin
 
-from ast import Import
-import logging
+import torch.nn as nn
 
-
-# Logger config
-logger = logging.getLogger('Segwork.adapter')
 
 def get_timm_backbone( name:str, **kwargs ):
     """Adapter for timm backbones"""
@@ -17,3 +14,12 @@ def get_timm_backbone( name:str, **kwargs ):
         raise ImportError('Timm is not installed')
 
     pass
+
+class TimmBackbone(nn.Module, BackboneMixin):
+
+    def __init__(self, name:str):
+        self._name = name
+
+    
+
+    

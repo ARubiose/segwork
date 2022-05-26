@@ -3,8 +3,6 @@
 Use the loggers to:
     *   Display console output for ordinary usage
     *   Report events that occur during normal operation of a framework
-    *   Issue a warning regarding a particular runtime event
-    *   Report an error regarding a particular runtime event
     **  Display and save training logs
 """
 from abc import abstractmethod
@@ -34,10 +32,8 @@ class LocalLogger(Logger):
         """Set up basic configuration and format for logger"""
         logging.basicConfig(filename=log_path, format=format, level=level)
 
-class TensorboardLogger(Logger):
-    """Class to save training logs on TensorBoard"""
-    pass
 
-class LogManager:
-    """Class to manage logs"""
+
+    
+        
 

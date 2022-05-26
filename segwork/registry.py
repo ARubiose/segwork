@@ -10,6 +10,7 @@ Code adapted from https://github.com/todofixthis/class-registry/blob/master/clas
 from abc import ABC, abstractmethod
 import collections
 import inspect
+from pathlib import Path
 import typing
 
 class Registry(collections.abc.Mapping, ABC):
@@ -278,3 +279,27 @@ backbones = ClassRegistry(attr_name='_register_name')
 modules = ClassRegistry(attr_name='_register_name')
 # Datasets
 # Dataloaders
+
+# Include timm backbones
+
+class ThirdPartyClassRegistry(ClassRegistry):
+    pass
+
+class DefaultSettingClassRegistry(ClassRegistry):
+    """Registry of classes with default settings"""
+
+    def __init__(
+        self,
+        attr_name: typing.Optional[str] = None,
+        unique: bool = False,
+        config_path: typing.Union[str, Path] = 'config'
+        ):
+        super().__init__(attr_name=attr_name, unique=unique)
+
+import pkg_resources
+
+def print_compati():
+    stream = pkg_resources.resource_stream(__name__, 'model/backbone/com_timm_backbones.txt')
+    return [line.strip() for line in stream]
+
+

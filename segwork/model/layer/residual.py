@@ -7,24 +7,30 @@ from turtle import forward
 from typing import Callable, Optional
 
 from torch import Tensor
+import torch
 import torch.nn as nn
 from torch.nn import Identity
 
-from segwork.models.layers.base import conv3x3
 
 class ResidualBlock(nn.Module):
-    """Basic residual block"""
+    """Flexible residual block """
     def __init__(self, 
                 block:nn.Module,
                 shortcut:Callable[...,nn.Module] = None,
+                skip_fn: Callable = torch.add,
+                activation = nn.ReLU,
                 **kwargs) -> None:
         super(ResidualBlock, self).__init__()
         self.block = block
-        self.relu = nn.ReLU(inplace=True)
+        self.shortcut = shortcut
+        self.activation = activation(inplace=True)
+        self.skip_fn = skip_fn
 
     def forward(self, x:Tensor):
         skip_connection = x
         x = self.block(x)
-        out = x + skip_connection if self.shortcut is None \
-            else self.shortcut(skip_connection) + x
-        return self.relu(out)
+        if self.shortcut:
+            out = self.skip_fn(self.shortcut(skip_connection), x)
+        else:
+            out = self.skip_fn(skip_connection, x) 
+        return self.activation(out)

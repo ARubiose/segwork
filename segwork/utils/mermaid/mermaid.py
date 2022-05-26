@@ -33,7 +33,7 @@ class MermaidGraph:
 
     def _save(self, path:str=None):
         """Generte text document of diagram"""
-        path = path or os.path.join(os.getcwd(), 'mermaid.md')
+        path = path or os.path.join(os.getcwd(), f'{self.name}.md')
         try:
             with open(path, 'x') as f:
                 f.write(f'{self.type} {self.orientation}\n') # Type and orientation
@@ -48,7 +48,7 @@ class MermaidGraph:
         """Display graph
         
         #FIXME Create raw string and display"""
-        path = path or os.path.join(os.getcwd(), 'mermaid.md')
+        path = path or os.path.join(os.getcwd(), f'{self.name}.md')
         try:
             with open(path, 'r') as f:
                 graph = f.read()
@@ -94,7 +94,7 @@ class MermaidParser(ABC):
     def reset(self) -> None:
         """Create new graph and empty token list"""
         self._tokens = list()
-        self.diagram = MermaidGraph()
+        self.diagram = MermaidGraph(self.diagram.name)
 
     @abstractmethod
     def tokenize(self, **kwargs):
@@ -117,11 +117,12 @@ class TorchFXParser(MermaidParser):
         'output': MermaidTokenFunction
     }
 
-    def __init__(self, name:str, style_map:MermaidStyle = None, module:nn.Module = None, **kwargs)-> None:
+    def __init__(self, name:str, style_map:MermaidStyle = None, module:nn.Module = None, parse: bool = True)-> None:
         if not style_map:
             style_map = TorchFxStyle()
         super().__init__(name, style_map)
         if module: self.tokenize(module)
+        if parse: self.parse_tokens()
 
     def tokenize(self, module:nn.Module)-> None:
         self._module = module
@@ -136,5 +137,7 @@ class TorchFXParser(MermaidParser):
 
 def display_model(model:nn.Module):
     """Display model"""
+    pass
+
 if __name__ == '__main__':
     pass

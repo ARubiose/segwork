@@ -1,6 +1,5 @@
 """Upsample module"""
 
-import math
 from typing import Optional, Tuple, Union
 
 import torch

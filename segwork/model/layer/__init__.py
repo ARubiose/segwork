@@ -2,4 +2,5 @@
 from timm.models.layers import *
 
 # Specific layers
-from .upsample import create_convtrans2d, DeConvBnAct
+from .base import *
+from .pyramid import *
