@@ -1,0 +1,6 @@
+{
+    "model_name": "Net",
+    "model_args": {
+        "size" : 28
+    }
+}

@@ -18,8 +18,7 @@ data/*
 !data/.gitkeep
 
 # Notebooks
-notebooks/*
-!notebooks/playground.ipynb
+# notebooks/*
 
 # Notes
 notes/*
