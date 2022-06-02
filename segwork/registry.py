@@ -12,6 +12,7 @@ import collections
 import inspect
 from pathlib import Path
 import typing
+import copy
 
 class Registry(collections.abc.Mapping, ABC):
     """Base class for a class registry"""
@@ -26,7 +27,7 @@ class Registry(collections.abc.Mapping, ABC):
         Args:
             key (typing.Hashable): Lookup key.
         """
-        return self.get_class(key)
+        return self.get_item(key)
 
     @abstractmethod
     def __len__(self):
@@ -80,8 +81,8 @@ class Registry(collections.abc.Mapping, ABC):
         for item in self.items():
             yield item[1]
 
-    def get(self, key: typing.Hashable, *args, **kwargs):
-        """Creates a new instance of the class matching the key.
+    def get(self, key: typing.Hashable):
+        """Get the item matching the key.
         
         Args:
             key (typing.Hashable): Lookup key.
@@ -91,23 +92,19 @@ class Registry(collections.abc.Mapping, ABC):
         Returns:
             Instance of the class matching the key
         """
-        return self.get_class(key)(*args, **kwargs)
+        return self.get_item(key)
 
     @abstractmethod
-    def get_class(self, key: typing.Hashable):
-        """Returns the class associated with the specified key
-
-        Args:
-            key (typing.Hashable): Lookup key
-
-        Returns:
-            Class associated with the specified key
-        """
+    def get_item(self, key: typing.Hashable):
+        """Returns registry item with specified key"""
         raise NotImplementedError
 
 
 class MutableRegistry(Registry, collections.abc.MutableMapping, ABC):
-    """Extends :py:class:`Registry` with methods to modify the registered classes."""
+    """Extends :py:class:`Registry` with methods to modify the registered items.
+    
+    Support for registering classes through decorators."""
+
     @abstractmethod
     def __init__(self, attr_name: typing.Optional[str] = None):
         """MutableMapping constructor
@@ -228,10 +225,16 @@ class ClassRegistry(MutableRegistry):
             Number of registered classes: {self.__len__()} \n\
             Registered classes: {list(self.keys())}'
         
+    def get_item(self, key: typing.Hashable, *args, **kwargs):
+        """Implementation of get item."""
+        return self._registry.get(key)
+        
 
     def get_class(self, key):
         """
-        Get the class associated with the specified key.
+        Get the class associated with the specified key.  
+        
+        Value is not formatted. Value is directly the class without params. Same as get_item in this class
 
         Returns:
             Class associated with the specified key.
@@ -253,12 +256,7 @@ class ClassRegistry(MutableRegistry):
         """
         Registers a class with the registry.
         """
-        if key in ['', None]:
-            raise ValueError(f'Attempting to register class {cls} with empty registry key')
-
-        if self.unique and (key in self._registry):
-            raise KeyError(f'{cls} with key {key} is already registered.')
-
+        self._validate_key(key)
         self._registry[key] = cls
 
     def _unregister(self, key: typing.Hashable) -> type:
@@ -272,34 +270,81 @@ class ClassRegistry(MutableRegistry):
             :py:class:KeyError if key is not registered
         """
         return self._registry.pop(key)
+    
+    def _validate_key(self, key: typing.Hashable):
+        """Validate key"""
+        if key in ['', None]:
+            raise ValueError(f'Attempting to register class with empty registry key')
+
+        if self.unique and (key in self._registry):
+            raise KeyError(f'Entry with key {key} is already registered.')
+
+class ConfigurableRegistry(ClassRegistry):
+    """Extension of class registry that includes default settings and subfields.
+    
+    Support custom keys within the registry (2 levels). This wrapper aims to solve the insecurity
+    """
+    def __init__(self, class_key:str, initial_registry: typing.Optional[typing.MutableMapping] = None, **kwargs):
+        super(ConfigurableRegistry, self).__init__(**kwargs)
+        try:
+             import segmentation_models_pytorch as smp
+        except:
+            raise ImportError('Error importing Segmentation models package. Package must be installed.')
+
+        self._class_key = class_key
+        self._registry = copy.deepcopy(initial_registry) if initial_registry else dict()
+
+    def _register(self, key: typing.Hashable, item:typing.Union[type, typing.MutableMapping]):
+        """Register item.
+        
+        It could be a object of type :py:class:`type` or :py:class:`Mutablemapping`"""
+ 
+        if isinstance(item, type):
+            self._registry[key] = { self._class_key : item }
+        else: # Dict validation (May use schema)
+            self._registry.update(item)
+
+    def get_class(self, key: typing.Hashable):
+        """Get class for the specified.
+        
+        Raise:
+            KeyError"""
+        return self._registry[key].get(self._class_key)
+
+    def get_instance(self, key: typing.Hashable, default_params:typing.Hashable = 'params', *args, **kwargs):
+        """Get instance of class with default params
+        
+        Raise:
+            KeyError"""
+        cls = self.get_class(key)
+        params = self.get_field(key, default_params, dict())
+        params.update(**kwargs)
+        return cls(**params)
+
+    def get_field(self, key: typing.Hashable, subkey: typing.Hashable, default: typing.Optional[typing.Any] = None):
+        """Get subfield for the specified key
+        
+        Raise:
+            KeyError"""
+        return self._registry[key].get(subkey, default)
+
+    def set_field(self, key: typing.Hashable, subkey: typing.Hashable, value: typing.Any, update:bool = True):
+        """Set field of registry"""
+        self._registry[key].update( subkey = value )
 
 # Easy configurables components  
-models = ClassRegistry(attr_name='_register_name')
-backbones = ClassRegistry(attr_name='_register_name')
-modules = ClassRegistry(attr_name='_register_name')
-# Datasets
-# Dataloaders
+models = ConfigurableRegistry(class_key = 'model', attr_name='_register_name')
+try:
+    import segmentation_models_pytorch as smp
+    initial_registry = smp.encoders.encoders
+except:
+    initial_registry = dict()
 
-# Include timm backbones
+backbones = ConfigurableRegistry(
+    class_key = 'encoder', 
+    initial_registry = initial_registry,
+    attr_name='_register_name')
 
-class ThirdPartyClassRegistry(ClassRegistry):
-    pass
 
-class DefaultSettingClassRegistry(ClassRegistry):
-    """Registry of classes with default settings"""
-
-    def __init__(
-        self,
-        attr_name: typing.Optional[str] = None,
-        unique: bool = False,
-        config_path: typing.Union[str, Path] = 'config'
-        ):
-        super().__init__(attr_name=attr_name, unique=unique)
-
-import pkg_resources
-
-def print_compati():
-    stream = pkg_resources.resource_stream(__name__, 'model/backbone/com_timm_backbones.txt')
-    return [line.strip() for line in stream]
 
 
