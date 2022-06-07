@@ -4,31 +4,56 @@ Code taken from: https://github.com/pytorch/vision/blob/main/torchvision/models/
 
 from msilib.schema import Shortcut
 from turtle import forward
-from typing import Callable, Optional
+import typing
 
 from torch import Tensor
 import torch
 import torch.nn as nn
-from torch.nn import Identity
 
+from segwork.registry import modules
 
+@modules.register
 class ResidualBlock(nn.Module):
     """Flexible residual block """
+
+    _register_name = 'Residual block'
+
+    _default_params = {
+        'in_channels' : 64,
+        'out_channels' : 64,
+        'kernel_size' : 3
+    }
+
     def __init__(self, 
-                block:nn.Module,
-                shortcut:Callable[...,nn.Module] = None,
-                skip_fn: Callable = torch.add,
+                block: nn.Module,
+                block_args: typing.Iterable = {},
+                shortcut:typing.Callable[...,nn.Module] = None,
+                skip_fn: typing.Callable = torch.add,
                 activation = nn.ReLU,
+                layers: int = 1,
                 **kwargs) -> None:
         super(ResidualBlock, self).__init__()
-        self.block = block
+
+        if isinstance(block_args, typing.Dict):
+            block_args = [block_args for _ in range(layers)]
+
+        # Repeat last args
+        if len(block_args) < layers:
+            block_args.append([block_args[-1] for _ in range(layers - len(block_args))])
+        
+        blocks = []
+        for idx in range(layers):
+            blocks.append(block(**block_args[idx]))
+        self.blocks = nn.Sequential(*blocks)
+
         self.shortcut = shortcut
         self.activation = activation(inplace=True)
         self.skip_fn = skip_fn
+        self.layers = layers
 
     def forward(self, x:Tensor):
         skip_connection = x
-        x = self.block(x)
+        x = self.blocks(x)
         if self.shortcut:
             out = self.skip_fn(self.shortcut(skip_connection), x)
         else:

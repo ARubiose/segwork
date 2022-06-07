@@ -14,6 +14,10 @@ from pathlib import Path
 import typing
 import copy
 
+# TODO Logging for warning on not habing installed smp
+
+__all__ = ['ConfigurableRegistry', 'backbones_reg', 'moduls_reg']
+
 class Registry(collections.abc.Mapping, ABC):
     """Base class for a class registry"""
 
@@ -192,7 +196,7 @@ class ClassRegistry(MutableRegistry):
     """
 
     def __init__(
-            self,
+            self,                
             attr_name: typing.Optional[str] = None,
             unique: bool = False,
     ) -> None:
@@ -284,15 +288,30 @@ class ConfigurableRegistry(ClassRegistry):
     
     Support custom keys within the registry (2 levels). This wrapper aims to solve the insecurity
     """
-    def __init__(self, class_key:str, initial_registry: typing.Optional[typing.MutableMapping] = None, **kwargs):
+    def __init__(self, 
+        class_key:str, 
+        attr_args: typing.MutableMapping = '_default_args',
+        additional_args = [],
+        initial_registry: typing.Optional[typing.MutableMapping] = None,
+        register_hook :typing.Callable = None,
+        **kwargs):
+        """Constructor for ConfigurableRegistry for
+        
+        Args:
+            -   """
         super(ConfigurableRegistry, self).__init__(**kwargs)
         try:
              import segmentation_models_pytorch as smp
         except:
             raise ImportError('Error importing Segmentation models package. Package must be installed.')
 
+        assert isinstance(additional_args, typing.List), f'Additional args must be an iterable. Got {additional_args.__class__.__name__}'
+        
         self._class_key = class_key
+        self._attr_args = attr_args
+        self._additional_args = additional_args
         self._registry = copy.deepcopy(initial_registry) if initial_registry else dict()
+        self._register_hook = register_hook
 
     def _register(self, key: typing.Hashable, item:typing.Union[type, typing.MutableMapping]):
         """Register item.
@@ -300,9 +319,20 @@ class ConfigurableRegistry(ClassRegistry):
         It could be a object of type :py:class:`type` or :py:class:`Mutablemapping`"""
  
         if isinstance(item, type):
-            self._registry[key] = { self._class_key : item }
-        else: # Dict validation (May use schema)
-            self._registry.update(item)
+            item = {
+                key : { 
+                    self._class_key : item,
+                    self._attr_args : getattr(item, self._attr_args, dict()),
+                    **self._get_attrs(item, *self._additional_args)
+                }
+            }
+            item.update()
+
+        self._registry.update(item)
+        
+        # Back compatibility with smp or other registry vendor
+        if self._register_hook:
+            self._register_hook(item)
 
     def get_class(self, key: typing.Hashable):
         """Get class for the specified.
@@ -311,13 +341,14 @@ class ConfigurableRegistry(ClassRegistry):
             KeyError"""
         return self._registry[key].get(self._class_key)
 
-    def get_instance(self, key: typing.Hashable, default_params:typing.Hashable = 'params', *args, **kwargs):
+    def get_instance(self, key: typing.Hashable, *args, **kwargs):
         """Get instance of class with default params
         
         Raise:
             KeyError"""
+        
         cls = self.get_class(key)
-        params = self.get_field(key, default_params, dict())
+        params = self.get_field(key, self._attr_args, dict())
         params.update(**kwargs)
         return cls(**params)
 
@@ -328,22 +359,73 @@ class ConfigurableRegistry(ClassRegistry):
             KeyError"""
         return self._registry[key].get(subkey, default)
 
+    def _get_attrs(self, cls:type, *args):
+        """Returns a dictionary for the args and class specified
+
+        If `py:attr:` does not exist in , an empty dictionary is return as value for the attribute
+        
+        Raise:
+            KeyError"""
+
+        return {subkey: getattr(cls, subkey, None) for subkey in args}
+
     def set_field(self, key: typing.Hashable, subkey: typing.Hashable, value: typing.Any, update:bool = True):
         """Set field of registry"""
         self._registry[key].update( subkey = value )
 
-# Easy configurables components  
-models = ConfigurableRegistry(class_key = 'model', attr_name='_register_name')
+    def add_additional_args(self, attr_name:str):
+        """Add attribute name to be stored in the registry"""
+        self._additional_args.append(attr_name)
+
+# REGISTRIES INITIALIZATION
 try:
     import segmentation_models_pytorch as smp
-    initial_registry = smp.encoders.encoders
-except:
-    initial_registry = dict()
+    _initial_backbone_registry = smp.encoders.encoders
+    _initial_model_registry = dict()
 
-backbones = ConfigurableRegistry(
-    class_key = 'encoder', 
-    initial_registry = initial_registry,
+    unet_registry = dict(
+        model = smp.unet.Unet,
+        params = {
+            'encoder_name':  "resnet34",
+            'encoder_depth':  5,
+            'encoder_weights':"imagenet",
+            'decoder_use_batchnorm':True,
+            'decoder_channels': (256, 128, 64, 32, 16),
+            'decoder_attention_type': None,
+            'in_channels':  3,
+            'classes': 1,
+            'activation': None,
+            'aux_params':  None,
+        }
+    )
+    _initial_model_registry['unet'] = unet_registry
+except Exception as e:
+    # loggin.warning(f'segmentation_pytorch not installed.')
+    print(e)
+    _initial_backbone_registry = dict()
+    _initial_model_registry = dict()
+
+backbones_reg = ConfigurableRegistry(
+    class_key = 'encoder',                      # Key to the nn.module class
+    initial_registry = _initial_backbone_registry,       # Initial registry. Default: None
+    attr_name = '_register_name',
+    attr_args = 'params',
+    additional_args= ['pretrained_settings'],
+    register_hook= lambda item : smp.encoders.encoders.update(item)) # Retrocompatibility
+
+models_reg = ConfigurableRegistry(
+    class_key = 'model',                      # Key to the nn.module class
+    initial_registry = _initial_model_registry,       # Initial registry. Default: None
+    attr_name = '_register_name',
+    attr_args = 'params',
+    additional_args= ['pretrained_settings'] )
+
+modules = ConfigurableRegistry(
+    class_key = 'module', 
     attr_name='_register_name')
+
+
+_initial_model_registry = dict()
 
 
 

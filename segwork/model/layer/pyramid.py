@@ -6,9 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from segwork.model.layer.base import ConvBnAct
-from segwork.registry import modules
 
-@modules.register
 class PyramidPooling(nn.Module):
     """Pyramid Pooling Module
     

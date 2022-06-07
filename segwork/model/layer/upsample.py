@@ -61,3 +61,6 @@ class Interpolate2d(nn.Module):
         """
         return F.interpolate(
             input, self.size, self.scale_factor, self.mode, self.align_corners, recompute_scale_factor=False, **kwargs)
+
+    def __repr__(self) -> str:
+        return f'{self.__class__.__name__}(size={self.size}, scale_factor={self.scale_factor}, mode={self.mode}, align_corners={self.align_corners})'
