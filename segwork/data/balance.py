@@ -105,7 +105,9 @@ class WeightCalculator(ABC):
         \n\tPixel count:{self.pixel_count}. Class count:{self.class_count}'
 
 class NumpyCalculator(WeightCalculator):
-    """Base class for class weight calculator with numpy"""
+    """Base class for class weight calculator with numpy
+    
+    If specified, the tensors used are cast to dtype for the operations"""
 
     def __init__(self, dtype: np.dtype = None, *args, **kwargs):
         self._dtype = dtype if dtype else np.int64
@@ -124,6 +126,7 @@ class NumpyCalculator(WeightCalculator):
         """Return whether the calculator is empty or not"""
         return not self.pixel_count.any()
 
+    # FIXME Implement ignore_index
     def update(self, label, ignore_index:typing.Tuple[int, ...] = None):
         """Updates the total count of pixels per class"""
 
@@ -135,10 +138,10 @@ class NumpyCalculator(WeightCalculator):
         h, w = label.shape
 
         label_count = np.bincount(label.astype(self._dtype).flatten(), minlength=self.num_classes)
-        label_count *= ignore_index_weights
+        label_count = (label_count * ignore_index_weights) + 1e-6
         self._pixel_count = np.add(self.pixel_count, label_count)
 
-        class_count = label_count > 0
+        class_count = label_count > 1e-6
         self._class_count = np.add(self.class_count, class_count * h * w)
         return label_count, class_count
 

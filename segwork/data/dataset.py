@@ -1,20 +1,24 @@
 """https://pytorch.org/tutorials/beginner/basics/data_tutorial.html
 
 https://pytorch.org/vision/stable/io.html#image
+
+Compatible with torchvision
 """
 
 from abc import ABC, abstractmethod
-import logging
-from typing import Any, Callable, Optional, Tuple
+import os
+from pathlib import Path
+import typing
 
-from torch import Tensor
-from torchvision.datasets import VisionDataset
-from torchvision.io import read_image
+
+import torchvision
 from tqdm import tqdm
+import numpy as np
 
 from segwork.data.balance import WeightCalculator
+from segwork.data.augmentations import ColorMasktoIndexMask
 
-class SegmentationDataset(VisionDataset):
+class SegmentationDataset(torchvision.datasets.VisionDataset):
     """Common interface to describe segmentation datasets for supervised training
 
     Args:
@@ -26,9 +30,9 @@ class SegmentationDataset(VisionDataset):
     def __init__(
         self,
         root: str,
-        transform: Optional[Callable] = None,
-        target_transform: Optional[Callable] = None,
-        transforms: Optional[Callable] = None,
+        transform: typing.Optional[typing.Callable] = None,
+        target_transform: typing.Optional[typing.Callable] = None,
+        transforms: typing.Optional[typing.Callable] = None,
         split:str = 'train'
     ):
         super().__init__(root, transforms, transform, target_transform)
@@ -102,11 +106,56 @@ class SegmentationDataset(VisionDataset):
         """Basic method to calculate dataset weights"""
 
         for idx in tqdm(range(self.num_data_points)):
-            label = self.load_numpy_label(idx)
+            label = self.load_weight_label(idx)
             calculator.update(label)
 
         weights = calculator.calculate(*args, **kwargs)
         return weights
+
+    @abstractmethod
+    def load_weight_label(self, idx):
+        """Load label to be used by the calculator"""
+        raise NotImplementedError
+
+def generate_numpy_files(self, 
+    path:typing.Union[str, Path],
+    dataset:SegmentationDataset, 
+    color_map:typing.MutableMapping[typing.Tuple[int,int,int], int],
+    index_name:bool = True
+    ):
+        """Generate numpy files containing segmentation masks
+        
+        """
+
+        if not os.path.exists(path):
+            # logger.warning(f'{path} not found. Creating directory...')
+            pass
+
+        assert os.path.isdir(path)
+        transform = torchvision.transforms.Compose([
+            ColorMasktoIndexMask(colors=color_map),
+            torchvision.transforms.PILToTensor()
+        ])
+
+
+        for idx in tqdm(range(len(dataset))):
+
+            # Path
+            file_name = f'{idx:03d}.npy' if index_name else f'{os.path.basename(dataset.annotations[idx])}.npy'
+            dir_name = os.path.join(path, 'label_numpy')
+            Path(dir_name).mkdir(parents=True, exist_ok=True)
+            path_name = os.path.join(dir_name, file_name)
+
+            # Transformation
+            label = dataset.load_label(idx)
+            mask = transform(label)
+            
+            # Save tensor
+            np.save(path_name, mask.numpy())
+
+
+
+    
         
 
 

@@ -23,27 +23,36 @@ class DroneDataset(SegmentationDataset):
     HEIGHT = 4000
     WIDTH = 6000
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, pil_target:bool = True, *args, **kwargs):
         super().__init__(*args, **kwargs)
         _TRAINING_DIR = os.path.join(self.root,'training_set')
         self.TRAINING_IMAGES_DIR = os.path.join(_TRAINING_DIR, 'images')
         self.TRAINING_SEMANTICS = os.path.join(_TRAINING_DIR, 'gt', 'semantic')
         self.TRAINING_LABELS_DIR = os.path.join(self.TRAINING_SEMANTICS, 'label_images')
         self.TRAINING_LABELS_DIR_NUMPY = os.path.join(self.TRAINING_SEMANTICS, 'label_numpy')
+        self.pil_target = pil_target
 
     @property
     def images(self):
-        return [os.path.join(self.TRAINING_IMAGES_DIR, file) for file in os.listdir(self.TRAINING_IMAGES_DIR)]
+        data_dir = self.TRAINING_LABELS_DIR if self.split == 'train' else self.TRAINING_LABELS_DIR
+        return self._get_listdir(data_dir)
 
     def load_image(self, idx:int):
-        return Image.open(self.images[idx])
+        return Image.open(self.images[idx]).convert("RGB")
 
     @property
     def annotations(self):
-        return [os.path.join(self.TRAINING_LABELS_DIR, file) for file in os.listdir(self.TRAINING_LABELS_DIR)]
+        data_dir = self.TRAINING_LABELS_DIR
+        return self._get_listdir(data_dir)
+
+    def _get_listdir(self, dir:str):
+        """Return a list with the path to the files in it"""
+        return [os.path.join(dir, file) for file in os.listdir(dir)]
 
     def load_label(self, idx:int):
-        return Image.open(self.annotations[idx])
+        if self.pil_target:
+            return Image.open(self.annotations[idx]).convert("RGB")
+        return self.load_numpy_label(idx)
 
     @property
     def mask_colors(self):
@@ -68,3 +77,8 @@ class DroneDataset(SegmentationDataset):
         file_name = f'{idx:03d}.npy'
         path_name = os.path.join(self.TRAINING_LABELS_DIR_NUMPY, file_name)
         return np.load(path_name, *args, **kwargs)
+
+    def load_weight_label(self, idx):
+        """Load label to be used by the calculator"""
+        return self.load_numpy_label(idx)
+    

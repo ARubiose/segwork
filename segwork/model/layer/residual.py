@@ -10,9 +10,6 @@ from torch import Tensor
 import torch
 import torch.nn as nn
 
-from segwork.registry import modules
-
-@modules.register
 class ResidualBlock(nn.Module):
     """Flexible residual block """
 

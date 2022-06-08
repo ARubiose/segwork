@@ -1,8 +1,4 @@
-from typing import Optional, Tuple, Union
-
-import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 def conv3x3(in_channels: int, out_channels: int, stride: int = 1, groups: int = 1, dilation: int = 1, **kwargs) -> nn.Conv2d:
     """3x3 convolution; Default: output stride = 1.0"""

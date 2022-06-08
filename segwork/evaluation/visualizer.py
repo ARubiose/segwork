@@ -2,16 +2,19 @@
 
 Need to ignore_index attribute for clarity
 """
+
+import abc
 import matplotlib.pyplot as plt
+import torch
 from torch.utils.data import Dataset
 import numpy as np
 
 from segwork.data.dataset import SegmentationDataset
 
-class Visualizer:
+class Visualizer(abc.ABC):
     """Class to visualize images and segmentation masks from Dataset objects"""
 
-    def __init__(self, dataset: SegmentationDataset):
+    def __init__(self, dataset: torch.utils.Dataset, colors):
         self.dataset = dataset
 
     def show(self, index, transform = None, target_transform = None):
@@ -49,7 +52,7 @@ class DatasetVisualizer():
     
 
     """
-    def __init__(self, dataset, backend=None):
+    def __init__(self, dataset: torch.utils.Dataset, backend=None):
         self._dataset = dataset
         self._colors = dataset.class_colors
         self._classes = dataset.class_names
