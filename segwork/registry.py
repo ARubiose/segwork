@@ -1,14 +1,16 @@
 """
 Classes for the implementation of a registry of components.
 
-Code adapted from https://github.com/todofixthis/class-registry/blob/master/class_registry/registry.py
+Code adapted and extended from https://github.com/todofixthis/class-registry/blob/master/class_registry/registry.py
 """
-from abc import ABC, abstractmethod
+import abc
 import collections
 import inspect
 from pathlib import Path
 import typing
 import copy
+
+from pyparsing import Optional
 
 # TODO Logging for warning on not habing installed smp
 
@@ -16,8 +18,14 @@ __all__ = ['ConfigurableRegistry', 'backbones_reg', 'moduls_reg']
 
 ItemType = typing.TypeVar('ItemType')
 
-class Registry(collections.abc.Mapping, ABC):
-    """Base class for a class registry"""
+class Registry(collections.abc.Mapping, abc.ABC):
+    """Base abstract class for a registry.
+    
+    Subclasses must implement the methods:
+     - __len__()
+     - items()   
+     - get_item(key)
+    """
 
     def __iter__(self):
         """Returns a generator for iterating over registry items."""
@@ -31,7 +39,7 @@ class Registry(collections.abc.Mapping, ABC):
         """
         return self.get_item(key)
 
-    @abstractmethod
+    @abc.abstractmethod
     def __len__(self):
         """Get the number of registered keys.
 
@@ -52,7 +60,8 @@ class Registry(collections.abc.Mapping, ABC):
         """
         try:
             self.get(key)
-        except KeyError:
+        except KeyError as e:
+            self.__missing__(e)
             return False
         else:
             return True
@@ -66,6 +75,7 @@ class Registry(collections.abc.Mapping, ABC):
         for item in self.items():
             yield item[0]
 
+    @abc.abstractmethod
     def items(self) -> typing.Iterable[typing.Tuple[typing.Hashable, ItemType]]:
         """Get registered classes and their asociated keys.
         
@@ -96,21 +106,38 @@ class Registry(collections.abc.Mapping, ABC):
         """
         return self.get_item(key)
 
-    @abstractmethod
+    
     def get_item(self, key: typing.Hashable) -> ItemType:
         """Returns registry item with specified key"""
         raise NotImplementedError
 
+    def __missing__(self, e: KeyError):
+        """Routine for missing keys"""
+        raise KeyError(e)
 
-class MutableRegistry(Registry, collections.abc.MutableMapping, ABC):
-    """Extends :py:class:`Registry` with methods to modify the registered items.
+
+class MutableRegistry(
+    Registry, 
+    collections.abc.MutableMapping,
+    abc.ABC):
+    """Extends :py:class:`Registry` with methods to add, modify and remove registered items.
     
-    Support for registering classes through decorators."""
+    Supports registering classes through decorators.
+    
+    Args: 
+        attr_name: If provided, :py:meth:`register` will automatically detect
+        the key to use when registering new classes.
+        unique: Determines what happens when two classes are registered with
+        the same key:
+        - ``True``: The second class will replace the first one.
+        - ``False``: A ``ValueError`` will be raised"""
 
     def __init__(
             self,
-            unique: bool = False,
+            attr_name: typing.Optional[str] = '_register_name',   
+            unique: bool = False
     ) -> None:
+        self.attr_name = attr_name
         self.unique = unique
 
     def __delitem__(self, key: typing.Hashable):
@@ -121,25 +148,85 @@ class MutableRegistry(Registry, collections.abc.MutableMapping, ABC):
         """
         self._unregister(key)
 
-    def __setitem__(self, key: typing.Hashable, cls: type):
+    def __setitem__(self, key: typing.Hashable, value: ItemType):
         """Wrapper for :py:meth:`_register`. Support to dict like syntax.
 
         Args:
             key (typing.Hashable): Lookup key.
         """
-        self._register(key, cls)
+        self._validate_register(key, value)
+        self._register(key, value)
 
-    @abstractmethod
-    def _register(self, key: typing.Hashable, class_: type) -> None:
-        """Registers a class with the registry."""
+    def _register_class(self, key: typing.Hashable, cls: type):
+        """Register item from class
 
+        Args:
+            key (typing.Hashable): Lookup key.
+        """
+        value = self._generate_value_from_cls(cls)
+        self._validate_register(key, value)
+        self._register(key, value)
+
+    @abc.abstractmethod
+    def _generate_value_from_cls(cls) -> ItemType:
+        raise NotImplementedError
+
+    def _validate_register(self, key:typing.Hashable, value:ItemType):
+        """Validate register"""
+        self._validate_key(key)
+        self._validate_value(value)
+
+    def _validate_key(self, key):
+        """Validate key before register"""
+        if self.unique and not self.is_unique(key):
+            raise KeyError(f'Entry with key {key} already exists. Set the unique attribute to false to overried items.')
+
+        if key in ['', None]:
+            raise ValueError(f'Attempting to register class with empty registry key')
+
+    def _validate_value(self, value:ItemType):
+        """Validate value before register"""
+        pass
+
+    @abc.abstractmethod
+    def is_unique(self, key:typing.Hashable):
         raise NotImplementedError(f'Not implemented in {type(self).__name__}.')
 
-    @abstractmethod
+    @abc.abstractmethod
+    def _register(self, key: typing.Hashable, class_: type) -> None:
+        """Registers a class with the registry."""
+        raise NotImplementedError(f'Not implemented in {type(self).__name__}.')
+
+    @abc.abstractmethod
     def _unregister(self, key: typing.Hashable) -> type:
         """Unregisters the class at the specified key."""
 
         raise NotImplementedError(f'Not implemented in {type(self).__name__}.')
+
+    def register(self, key: typing.Union[type, typing.Hashable]):
+        """Decorator that registers a class with the registry.
+        
+        Args:
+            key: The registry key to use for the registered class.
+            Optional if the registry's :py:attr:`attr_name` is set.
+
+        Raise:
+            :py:class:`ValueError` if ket is not provided.
+
+        """
+
+        if inspect.isclass(key):
+            if self.attr_name:
+                self._register_class(getattr(key, self.attr_name), key)
+                return key
+            else:
+                raise ValueError('Registry key is required.')
+
+        def _decorator(cls):
+            self._register_class(key, cls)
+            return cls
+
+        return _decorator
 
     def unregister(self, key: typing.Any) -> type:
         """Unregisters the class with the specified key.
@@ -156,32 +243,21 @@ class MutableRegistry(Registry, collections.abc.MutableMapping, ABC):
         """
         return self._unregister(key)
 
-
-
 class ClassRegistry(MutableRegistry):
-    """Base Class registry with register and unregister functions implemented with
+    """Description
     
     Maintains a registry of classes and provides a generic factory for
     instantiating them. Useful for modular components. 
     """
 
-    def __init__(
-            self,                
-            unique: bool = False,
-            attr_name: typing.Optional[str] = None,
-    ) -> None:
+    def __init__(self, 
+        register_hook:typing.Optional[typing.Callable] = None, 
+        initial_registry: typing.MutableMapping = None, *args, **kwargs) -> None:
+        """Constructor method for :py:class:`ClassRegistry`
         """
-        Args:
-            attr_name: If provided, :py:meth:`register` will automatically detect
-            the key to use when registering new classes.
-            unique: Determines what happens when two classes are registered with
-            the same key:
-            - ``True``: The second class will replace the first one.
-            - ``False``: A ``ValueError`` will be raised.
-        """
-        super().__init__(unique)
-        self.attr_name = attr_name
-        self._registry = dict()
+        super().__init__(*args, **kwargs)
+        self._register_hook = register_hook
+        self._registry = self._get_initial_registry(initial_registry) if initial_registry else dict()
 
     def __len__(self):
         """
@@ -191,6 +267,10 @@ class ClassRegistry(MutableRegistry):
             Number of registered classes
         """
         return len(self._registry)
+
+    def is_unique(self, key: typing.Hashable) -> bool:
+        """Returns whether a key exists or not in the registry"""
+        return key not in self._registry  
 
     def __repr__(self):
         return f'{type(self).__name__}(attr_name={self.attr_name}, unique={self.unique})\n\
@@ -216,8 +296,12 @@ class ClassRegistry(MutableRegistry):
         return self._registry[key]
 
     def get_instance(self, key, *args, **kwargs):
+        """Create instance of class associated with the specified key"""
         cls = self.get_class(key)
         return cls(*args, **kwargs)
+
+    def _generate_value_from_cls(self, cls:type) -> ItemType:
+        return cls
 
     def items(self) -> typing.Iterable[typing.Tuple[typing.Hashable, str]]:
         """
@@ -230,7 +314,10 @@ class ClassRegistry(MutableRegistry):
         """
         Registers a class with the registry.
         """
-        self._validate_key(key)
+
+        if self._register_hook:
+            self._register_hook(key, cls)
+
         self._registry[key] = cls
 
     def _unregister(self, key: typing.Hashable) -> type:
@@ -243,87 +330,54 @@ class ClassRegistry(MutableRegistry):
         Raise
             :py:class:KeyError if key is not registered
         """
-        return self._registry.pop(key)
+        return self._registry.pop(key)    
 
-    def key_exists(self, key: typing.Hashable) -> bool:
-        return key in self._registry
-
-    def register(self, key: typing.Union[type, typing.Hashable]):
-        """Decorator that registers a class with the registry.
+    def _validate_value(self, value:type):
+        """Validate value before register class"""
+        assert isinstance(value, type), f'Vaue must be of type {type}. Got {value.__class__.__name__}'
         
-        Args:
-            key: The registry key to use for the registered class.
-            Optional if the registry's :py:attr:`attr_name` is set.
+    def _get_initial_registry(self, registry: typing.MutableMapping) -> typing.Dict:
+        """Initialize"""
+        self._validate_initial_registry(registry)
+        return copy.deepcopy(registry)
 
-        Raise:
-            :py:class:`ValueError` if ket is not provided.
-
-        """
-
-        if inspect.isclass(key):
-            if self.attr_name:
-                self._register(getattr(key, self.attr_name), key)
-                return key
-            else:
-                raise ValueError('Registry key is required.')
-
-        def _decorator(cls):
-            self._register(key, cls)
-            return cls
-
-        return _decorator
+    def _validate_initial_registry(self, registry):
+        if not all(inspect.isclass(value) for value in registry.values()):
+            raise ValueError(f'Values in the registry must be type {type}')
 
 class ConfigurableRegistry(ClassRegistry):
-    """Extension of Mutable registry that includes default settings and subfields.
+    """Subclass of :py:class:`ClassRegistry` that includes default settings and additional information of the registered class.
     
-    Support custom keys within the registry (2 levels). This wrapper aims to solve the insecurity
     """
     def __init__(self, 
         class_key:str, 
-        attr_args: typing.MutableMapping = '_default_args',
-        attr_kwargs: typing.MutableMapping = '_default_kwargs',
+        attr_args: str = '_default_args',
+        attr_kwargs: str = '_default_kwargs',
         additional_args = [],
-        initial_registry: typing.Optional[typing.MutableMapping] = None,
-        register_hook :typing.Callable = None,
         **kwargs):
         """Constructor for ConfigurableRegistry for
         
         Args:
             -   """
-        super(ConfigurableRegistry, self).__init__(**kwargs)
-        try:
-             import segmentation_models_pytorch as smp
-        except:
-            raise ImportError('Error importing Segmentation models package. Package must be installed.')
-
         assert isinstance(additional_args, typing.List), f'Additional args must be a list. Got {additional_args.__class__.__name__}'
-        
         self._class_key = class_key
         self._attr_args = attr_args
         self._attr_kwargs = attr_kwargs
         self._additional_args = additional_args
-        self._registry = copy.deepcopy(initial_registry) if initial_registry else dict()
-        self._register_hook = register_hook
 
-    def _register(self, key: typing.Hashable, item:typing.Union[type, typing.MutableMapping]):
-        """Register item.
-        
-        It could be a object of type :py:class:`type` or :py:class:`Mutablemapping`"""
- 
-        if isinstance(item, type):
-            item = {
-                key : { 
-                    self._class_key : item,
-                    self._attr_args : getattr(item, self._attr_args, list()),
-                    self._attr_kwargs : getattr(item, self._attr_kwargs, dict()),
-                    **self._get_attrs(item, *self._additional_args)
-                }
+        super(ConfigurableRegistry, self).__init__(**kwargs)
+
+    def _generate_value_from_cls(self, cls):
+        return {
+                self._class_key : cls,
+                self._attr_args : getattr(cls, self._attr_args, list()),
+                self._attr_kwargs : getattr(cls, self._attr_kwargs, dict()),
+                **{subkey: getattr(cls, subkey, None) for subkey in self._additional_args}
             }
 
-        self._registry.update(item)
-        
-        if self._register_hook:
-            self._register_hook(item)
+    def _validate_value(self, value: typing.Dict):
+        assert self._class_key in value, f'Value must have a key {self._class_key} containing a reference to the class.'
+        # Warning if no args are store. 
 
     def get_class(self, key: typing.Hashable):
         """Get class for the specified key.
@@ -337,28 +391,19 @@ class ConfigurableRegistry(ClassRegistry):
         
         Raise:
             KeyError"""
-        
-        cls_args = self.get_field(key, self._attr_args, list())
-        cls_kwargs = self.get_field(key, self._attr_kwargs, dict())
-        cls_kwargs.update(**kwargs)
-        return super().get_instance(key, *cls_args, **cls_kwargs)
 
-    def get_field(self, key: typing.Hashable, subkey: typing.Hashable, default: typing.Optional[typing.Any] = None):
+        cls = self.get_class(key)
+        cls_args = set([*self.get_subfield(key, self._attr_args, list()), *args])
+        cls_kwargs = self.get_subfield(key, self._attr_kwargs, dict())
+        cls_kwargs.update(**kwargs)
+        return cls(*cls_args, **cls_kwargs)
+
+    def get_subfield(self, key: typing.Hashable, subkey: typing.Hashable, default: typing.Optional[typing.Any] = None):
         """Get subfield for the specified key
         
         Raise:
             KeyError"""
         return self._registry[key].get(subkey, default)
-
-    def _get_attrs(self, cls:type, *args):
-        """Returns a dictionary for the args and class specified
-
-        If `py:attr:` does not exist in , an empty dictionary is return as value for the attribute
-        
-        Raise:
-            KeyError"""
-
-        return {subkey: getattr(cls, subkey, None) for subkey in args}
 
     def set_field(self, key: typing.Hashable, subkey: typing.Hashable, value: typing.Any, update:bool = True):
         """Set field of registry"""
@@ -368,6 +413,16 @@ class ConfigurableRegistry(ClassRegistry):
         """Add attribute name to be stored in the registry"""
         self._additional_args.append(attr_name)
 
+    def _validate_initial_registry(self, registry: typing.MutableMapping):
+        if not all(self._class_key in value for key, value in registry.items()):
+            raise ValueError(f'Values in the registry must have a key {self.class_key} containing the classes')
+
+    def __repr__(self):
+        msg = f'\tClass key: {self._class_key}\n'\
+        f'\tAttribute args: {self._attr_args}\n'\
+        f'\tAttribute kwargs: {self._attr_kwargs}\n'\
+        f'\tAdditional info from attributes: {self._additional_args}\n'
+        return f'{super().__repr__()}\n' + msg
 # REGISTRIES INITIALIZATION
 try:
     import segmentation_models_pytorch as smp
@@ -402,14 +457,16 @@ backbones_reg = ConfigurableRegistry(
     attr_name = '_register_name',
     attr_args = 'params',
     additional_args= ['pretrained_settings'],
-    register_hook= lambda item : smp.encoders.encoders.update(item)) # Retrocompatibility
+    register_hook= lambda _, value : smp.encoders.encoders.update(value)) # Retrocompatibility
 
 models_reg = ConfigurableRegistry(
     class_key = 'model',                      # Key to the nn.module class
     initial_registry = _initial_model_registry,       # Initial registry. Default: None
-    attr_name = '_register_name',
-    attr_kwargs = 'params',
     additional_args= ['pretrained_settings'] )
+
+def smp_compatibility(key, value):
+    """Safe inclusion of key and value into smp encoders repository"""
+    smp.encoders.encoders[key] = value
 
 
 
