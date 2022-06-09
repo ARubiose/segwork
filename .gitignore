@@ -18,7 +18,8 @@ data/*
 !data/.gitkeep
 
 # Notebooks
-# notebooks/*
+notebooks/*
+!notebooks/*.ipynb
 
 # Notes
 notes/*

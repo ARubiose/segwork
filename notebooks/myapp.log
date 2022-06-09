@@ -1,3 +1,0 @@
-WARNING:segwork.data.balance:Weight file {self._path} already exists, replacing weights. Change the unique attr to prevent it.
-DEBUG:PIL.PngImagePlugin:STREAM b'IHDR' 16 13
-DEBUG:PIL.PngImagePlugin:STREAM b'IDAT' 41 65536
