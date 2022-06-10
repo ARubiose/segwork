@@ -15,7 +15,7 @@ import torchvision
 from tqdm import tqdm
 import numpy as np
 
-from segwork.data.balance import WeightCalculator
+from segwork.data.balance import PixelCalculator
 from segwork.data.augmentations import ColorMasktoIndexMask
 
 class SegmentationDataset(torchvision.datasets.VisionDataset):
@@ -102,20 +102,23 @@ class SegmentationDataset(torchvision.datasets.VisionDataset):
 
         return len(self.images)
 
-    def compute_class_weights(self, calculator:WeightCalculator, *args, **kwargs):
-        """Basic method to calculate dataset weights"""
+    def compute_class_weights(self, calculator:PixelCalculator, *args, **kwargs):
+        """Basic method to calculate dataset weights.
+        
+        Make sure your calculator input and your dataset output are compatible through the target_transform attribute"""
 
         for idx in tqdm(range(self.num_data_points)):
             label = self.load_weight_label(idx)
             calculator.update(label)
 
-        weights = calculator.calculate(*args, **kwargs)
+        weights = calculator.compute(*args, **kwargs)
         return weights
 
     @abstractmethod
     def load_weight_label(self, idx):
         """Load label to be used by the calculator"""
         raise NotImplementedError
+
 
 def generate_numpy_files(self, 
     path:typing.Union[str, Path],

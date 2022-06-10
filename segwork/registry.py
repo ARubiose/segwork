@@ -252,11 +252,14 @@ class ClassRegistry(MutableRegistry):
 
     def __init__(self, 
         register_hook:typing.Optional[typing.Callable] = None, 
-        initial_registry: typing.MutableMapping = None, *args, **kwargs) -> None:
+        get_hook: typing.Optional[typing.Callable] = None,
+        initial_registry: typing.MutableMapping = None, 
+        *args, **kwargs) -> None:
         """Constructor method for :py:class:`ClassRegistry`
         """
         super().__init__(*args, **kwargs)
         self._register_hook = register_hook
+        self._get_hook = get_hook
         self._registry = self._get_initial_registry(initial_registry) if initial_registry else dict()
 
     def __len__(self):
@@ -273,13 +276,16 @@ class ClassRegistry(MutableRegistry):
         return key not in self._registry  
 
     def __repr__(self):
-        return f'{type(self).__name__}(attr_name={self.attr_name}, unique={self.unique})\n\
-            Number of registered classes: {self.__len__()} \n\
-            Registered classes: {list(self.keys())}'
+        return f'{type(self).__name__}\n\tattr_name: {self.attr_name}\n\tunique: {self.unique}\n'\
+            f'\tNumber of registered classes: {self.__len__()} \n'\
+            f'\tRegistered classes: {list(self.keys())}'
         
     def get_item(self, key: typing.Hashable, *args, **kwargs):
         """Implementation of get item."""
-        return self._registry.get(key)
+        value = self._registry.get(key)
+        if self._get_hook:
+            value = self._get_hook(value)
+        return value
         
     def get_class(self, key):
         """

@@ -11,7 +11,11 @@ import torch
 
 logger = logging.getLogger(__name__)
 
-class WeightCalculator(ABC):
+class WeightAlgorithm(typing.Protocol):
+    def compute(self, *args, **kwargs):
+        pass
+
+class PixelCalculator(ABC):
     """Base class to count pixels in an image
     
     Args:
@@ -19,12 +23,12 @@ class WeightCalculator(ABC):
     def __init__(self, 
         num_classes:int,
         path:typing.Union[str, Path] = None,
-        ignore_index: typing.Tuple[int, ...] = None):
+        weight_algorithm = None):
         self._num_classes = num_classes
         self._path = path
-        self._ignore_index = ignore_index if ignore_index or ignore_index == (0,) else tuple()
+        self._weight_algorithm = weight_algorithm 
         self._initialize_pixel_count()
-        self._initialize_class_count()
+        self._initialize_class_count() 
 
     @property
     def pixel_count(self):
@@ -48,10 +52,6 @@ class WeightCalculator(ABC):
     @property
     def num_classes(self) -> int:
         return self._num_classes
-
-    @property
-    def ignore_index(self) -> typing.Tuple[int,...]:
-        return self._ignore_index
 
     @num_classes.setter
     def num_classes(self, n: int):
@@ -104,7 +104,7 @@ class WeightCalculator(ABC):
         return f'Calculator with \n\t{self.num_classes} classes. Igonre_index = {self.ignore_index}\
         \n\tPixel count:{self.pixel_count}. Class count:{self.class_count}'
 
-class NumpyCalculator(WeightCalculator):
+class NumpyCalculator(PixelCalculator):
     """Base class for class weight calculator with numpy
     
     If specified, the tensors used are cast to dtype for the operations"""
@@ -126,23 +126,16 @@ class NumpyCalculator(WeightCalculator):
         """Return whether the calculator is empty or not"""
         return not self.pixel_count.any()
 
-    # FIXME Implement ignore_index
-    def update(self, label, ignore_index:typing.Tuple[int, ...] = None):
+    def update(self, label):
         """Updates the total count of pixels per class"""
-
-        if ignore_index:
-            self._ignore_index = ignore_index
-
-        ignore_index_weights = np.array([0 if index in self._ignore_index else 1 for index in range(self.num_classes)])
-
         h, w = label.shape
 
         label_count = np.bincount(label.astype(self._dtype).flatten(), minlength=self.num_classes)
-        label_count = (label_count * ignore_index_weights) + 1e-6
         self._pixel_count = np.add(self.pixel_count, label_count)
 
-        class_count = label_count > 1e-6
+        class_count = label_count > 0
         self._class_count = np.add(self.class_count, class_count * h * w)
+
         return label_count, class_count
 
     def load_weights(self, path:typing.Union[str, Path] = None, *args, **kwargs):
@@ -187,29 +180,62 @@ class NumpyCalculator(WeightCalculator):
         self._weights = np.zeros(self.num_classes, dtype=self._dtype)
         return self._weights
 
-    def calculate(self):
-        """Calculate the weights. Overried this"""
-        raise NotImplementedError
+    def attach_metric_algorithm(self, algo):
+        """"""
+        self._weight_algorithm = algo
 
+    def compute(self):
+        """Calculate weights through attached algorithm"""
+        try:
+            self._weights = self._weight_algorithm.compute(self.pixel_count, self.class_count)
+            return self._weights
+        except AttributeError as e:
+            # TODO error message or warning return an array full of 1's
+            print('A metric algorithm must be attached to the calculator')
 
-class NumpyLinearWeight(NumpyCalculator):
-    """Weight calculator base on Median frecuency"""
+    
 
-    def calculate(self, *args, **kwargs):
-        """Calculate weights based on Median frequency"""
-        self._weights = np.exp(self.pixel_count)/sum(np.exp(self.pixel_count))
+# Make them inherit from a protocol (Implements compute)
+class LinearWeight(WeightAlgorithm):
+    """Linear weight algorithm"""
+
+    def __init__(self, ignore_index: typing.Tuple[int,...] = None):
+        self._ignore_index = ignore_index
+
+    def compute(self, pixel_count:torch.Tensor, class_count:torch.Tensor, *args, **kwargs):
+        """Calculate weights based on x"""
+        pixel_count = np.copy(pixel_count)
+        class_count = np.copy(class_count)
+
+        if self._ignore_index:
+            ignore_mask = [0 if idx in self._ignore_index else 1 for idx in range(len(pixel_count))]
+            ignore_index_mask = np.asarray(ignore_mask, dtype=pixel_count.dtype)
+            pixel_count *= ignore_index_mask
+            class_count *= ignore_index_mask
+
+        self._weights = np.exp(pixel_count)/sum(np.exp(pixel_count))
         return self._weights
 
-class NumpyMedianFrequencyWeight(NumpyCalculator):
+class NumpyMedianFrequencyWeight:
     """Weight calculator base on Median frecuency"""
 
-    def calculate(self, *args, **kwargs):
+    def __init__(self, ignore_index: typing.Tuple[int,...] = None):
+        self._ignore_index = ignore_index
+
+    def compute(self, pixel_count:torch.Tensor, class_count:torch.Tensor, *args, **kwargs):
         """Calculate weights based on Median frequency"""
+        
+        if self._ignore_index:
+            ignore_mask = np.zeros(pixel_count.size()[0])
+            pixel_count *= ignore_mask
+            class_count *= ignore_mask
+
+
         frequency = self.pixel_count / self.class_count
         self._weights = np.median(frequency) / frequency 
         return self._weights
 
-class LogarithmicWeight(NumpyCalculator):
+class LogarithmicWeight:
     """Weight calculator based on logarithm """
 
     def __init__(self, c:float = 1.02, *args, **kwargs):
@@ -223,77 +249,77 @@ class LogarithmicWeight(NumpyCalculator):
         return self._weights
 
 
-class PytorchCalculator(WeightCalculator):
-    """Base class for class weight calculator with numpy"""
+# class PytorchCalculator(WeightCalculator):
+#     """Base class for class weight calculator with numpy"""
     
-    def __init__(self, dtype: np.dtype = None, *args, **kwargs):
-        self._dtype = dtype if dtype else torch.uint64
-        super().__init__(*args, **kwargs)
+#     def __init__(self, dtype: np.dtype = None, *args, **kwargs):
+#         self._dtype = dtype if dtype else torch.uint64
+#         super().__init__(*args, **kwargs)
 
-    def _initialize_pixel_count(self):
-        self._pixel_count = torch.zeros(self.num_classes, dtype=self._dtype)
-        return self.pixel_count
+#     def _initialize_pixel_count(self):
+#         self._pixel_count = torch.zeros(self.num_classes, dtype=self._dtype)
+#         return self.pixel_count
 
-    def _initialize_class_count(self):
-        self._class_count = torch.zeros(self.num_classes, dtype=self._dtype)
-        return self._class_count
+#     def _initialize_class_count(self):
+#         self._class_count = torch.zeros(self.num_classes, dtype=self._dtype)
+#         return self._class_count
 
-    def is_empty(self) -> bool:
-        """Return whether the calculator is empty or not"""
-        return not torch.any(self.pixel_count)
+#     def is_empty(self) -> bool:
+#         """Return whether the calculator is empty or not"""
+#         return not torch.any(self.pixel_count)
 
-    def update(self, label):
-        """Updates the total count of pixels per class"""
+#     def update(self, label):
+#         """Updates the total count of pixels per class"""
         
-        label_count = torch.bincount(torch.flatten(label), minlength=self.num_classes)
-        self._pixel_count = torch.add(self.pixel_count, label_count)
+#         label_count = torch.bincount(torch.flatten(label), minlength=self.num_classes)
+#         self._pixel_count = torch.add(self.pixel_count, label_count)
 
-        class_count = label_count > 0
-        self._class_count = torch.add(self.class_count, class_count)
-        return label_count, class_count
+#         class_count = label_count > 0
+#         self._class_count = torch.add(self.class_count, class_count)
+#         return label_count, class_count
 
-    def load_weights(self, *args, **kwargs):
-        self._weights = torch.load(self._path, *args, **kwargs)
-        return self._weights
+#     def load_weights(self, *args, **kwargs):
+#         self._weights = torch.load(self._path, *args, **kwargs)
+#         return self._weights
 
-    def save_weights(self, *args, **kwargs):
-        torch.save( self._weights, *args, **kwargs)
+#     def save_weights(self, *args, **kwargs):
+#         torch.save( self._weights, *args, **kwargs)
 
-    def reset_weights(self, *args, **kwargs):
-        self._weights = torch.zeros(self.num_classes, dtype=self._dtype)
-        return self._weights
+#     def reset_weights(self, *args, **kwargs):
+#         self._weights = torch.zeros(self.num_classes, dtype=self._dtype)
+#         return self._weights
 
-    def calculate(self):
-        """Calculate the weights. Overried this"""
-        raise NotImplementedError
+#     def calculate(self):
+#         """Calculate the weights. Overried this"""
+#         raise NotImplementedError
 
 
-class PytorchLinearWeight(PytorchCalculator):
-    """Weight calculator base on Median frecuency"""
+# class PytorchLinearWeight(PytorchCalculator):
+#     """Weight calculator base on Median frecuency"""
 
-    def calculate(self, *args, **kwargs):
-        """Calculate weights based on Median frequency"""
-        self._weights = torch.exp(self.pixel_count)/torch.sum(torch.exp(self.pixel_count))
-        return self._weights
+#     def calculate(self, *args, **kwargs):
+#         """Calculate weights based on Median frequency"""
+#         self._weights = torch.exp(self.pixel_count)/torch.sum(torch.exp(self.pixel_count))
+#         return self._weights
 
-class PytorchMedianFrequencyWeight(PytorchCalculator):
-    """Weight calculator base on Median frecuency"""
+# class PytorchMedianFrequencyWeight(PytorchCalculator):
+#     """Weight calculator base on Median frecuency"""
 
-    def calculate(self, *args, **kwargs):
-        """Calculate weights based on Median frequency"""
-        frequency = self.pixel_count / self.class_count
-        self._weights = torch.median(frequency) / frequency 
-        return self._weights
+#     def calculate(self, *args, **kwargs):
+#         """Calculate weights based on Median frequency"""
+#         frequency = self.pixel_count / self.class_count
+#         self._weights = torch.median(frequency) / frequency 
+#         return self._weights
 
-class PytorchLogarithmicWeight(PytorchCalculator):
-    """Wight calculator based on logarithm """
+# class PytorchLogarithmicWeight(PytorchCalculator):
+#     """Wight calculator based on logarithm """
 
-    def __init__(self, c:float = 1.02, *args, **kwargs):
-        self._c = c
-        super().__init__(*args, **kwargs)
+#     def __init__(self, c:float = 1.02, *args, **kwargs):
+#         self._c = c
+#         super().__init__(*args, **kwargs)
 
-    def calculate(self, *args, **kwargs):
-        """Calculate weights based on Median frequency"""
-        logits = self.pixel_count / torch.sum(self.pixel_count)
-        self._weights = 1 / torch.log(self._c + logits) 
-        return self.weights
+#     def calculate(self, *args, **kwargs):
+#         """Calculate weights based on Median frequency"""
+#         logits = self.pixel_count / torch.sum(self.pixel_count)
+#         self._weights = 1 / torch.log(self._c + logits) 
+#         return self.weights

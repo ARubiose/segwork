@@ -1,0 +1,14 @@
+NAME : "ExperimentoA"
+
+DATASET:
+  KEY : 'drone'
+
+  TRANSFORM:
+    TRANSFORM_ARGS:
+      height : 1000
+
+MODEL:
+  DEVICE: 'cuda'
+  ARGS: 
+    encoder_name: 'resnet34'
+
