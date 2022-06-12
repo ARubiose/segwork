@@ -4,15 +4,14 @@ Classes for the implementation of a registry of components.
 Code adapted and extended from https://github.com/todofixthis/class-registry/blob/master/class_registry/registry.py
 """
 import abc
+import logging
 import collections
 import inspect
-from pathlib import Path
 import typing
 import copy
 
-from pyparsing import Optional
 
-# TODO Logging for warning on not habing installed smp
+_logger = logging.getLogger(__name__)
 
 __all__ = ['ConfigurableRegistry', 'backbones_reg', 'moduls_reg']
 
@@ -430,49 +429,36 @@ class ConfigurableRegistry(ClassRegistry):
         f'\tAdditional info from attributes: {self._additional_args}\n'
         return f'{super().__repr__()}\n' + msg
 # REGISTRIES INITIALIZATION
+def smp_hook(key, value):
+    """Safe inclusion of key and value into smp encoders repository"""
+    smp.encoders.encoders[key] = value
+    
 try:
     import segmentation_models_pytorch as smp
     _initial_backbone_registry = smp.encoders.encoders
-    _initial_model_registry = dict()
-
-    unet_registry = dict(
-        model = smp.unet.Unet,
-        params = {
-            'encoder_name':  "resnet34",
-            'encoder_depth':  5,
-            'encoder_weights':"imagenet",
-            'decoder_use_batchnorm':True,
-            'decoder_channels': (256, 128, 64, 32, 16),
-            'decoder_attention_type': None,
-            'in_channels':  3,
-            'classes': 1,
-            'activation': None,
-            'aux_params':  None,
-        }
-    )
-    _initial_model_registry['unet'] = unet_registry
+    _register_hook = smp_hook # Retrocompatibility
+    _default_kwargs = 'params'
+    from segwork.model._smp_models import _initial_model_registry
 except Exception as e:
     # loggin.warning(f'segmentation_pytorch not installed.')
     print(e)
     _initial_backbone_registry = dict()
     _initial_model_registry = dict()
+    _register_hook = None
+    _default_kwargs = '_default_kwargs'
 
 backbones_reg = ConfigurableRegistry(
     class_key = 'encoder',                      # Key to the nn.module class
     initial_registry = _initial_backbone_registry,       # Initial registry. Default: None
-    attr_name = '_register_name',
-    attr_args = 'params',
+    attr_args = _default_kwargs,
     additional_args= ['pretrained_settings'],
-    register_hook= lambda _, value : smp.encoders.encoders.update(value)) # Retrocompatibility
+    register_hook= _register_hook) 
 
 models_reg = ConfigurableRegistry(
     class_key = 'model',                      # Key to the nn.module class
-    initial_registry = _initial_model_registry,       # Initial registry. Default: None
-    additional_args= ['pretrained_settings'] )
+    initial_registry = _initial_model_registry )
 
-def smp_compatibility(key, value):
-    """Safe inclusion of key and value into smp encoders repository"""
-    smp.encoders.encoders[key] = value
+
 
 
 
