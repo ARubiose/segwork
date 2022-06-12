@@ -5,9 +5,10 @@ https://pytorch.org/vision/stable/io.html#image
 Compatible with torchvision
 """
 
-from abc import ABC, abstractmethod
+import abc
 import os
 from pathlib import Path
+import pathlib
 import typing
 
 
@@ -15,14 +16,15 @@ import torchvision
 from tqdm import tqdm
 import numpy as np
 
-from segwork.data.balance import PixelCalculator
+from segwork.data.balance import WeightAlgorithm
 from segwork.data.augmentations import ColorMasktoIndexMask
 
-class SegmentationDataset(torchvision.datasets.VisionDataset):
+ColorMap = typing.MutableMapping[typing.Tuple[int,int,int], int]
+
+class SegmentationDataset(torchvision.datasets.VisionDataset, metaclass=abc.ABCMeta):
     """Common interface to describe segmentation datasets for supervised training
 
-    Args:
-        - (str) root: 
+
     """
     HEIGHT: int
     WIDTH: int
@@ -59,32 +61,32 @@ class SegmentationDataset(torchvision.datasets.VisionDataset):
             f'Different number of images and labels. Images: {len(self.images)} Labels:{self.labels}'
         return len(self.images)
 
-    @abstractmethod
+    @abc.abstractmethod
     def load_image(self, idx:int):
         """Returns a :py:class:`PIL.Image.Image` object for the specified image idx """
         raise NotImplementedError
 
-    @abstractmethod
+    @abc.abstractmethod
     def load_label(self, idx):
         """Returns a :py:class:`PIL.Image.Image` object for the specified label idx"""
         raise NotImplementedError
 
-    @abstractmethod
+    @abc.abstractmethod
     def images(self):
         """Returns a list of paths to the files containing the images"""
         raise NotImplementedError
 
-    @abstractmethod
+    @abc.abstractmethod
     def annotations(self):
         """Returns a list of paths to the files containing the ground truth masks"""
         raise NotImplementedError
 
-    @abstractmethod
+    @abc.abstractmethod
     def mask_colors(self):
         """Returns a mapping object of the class index and class colors"""
         raise NotImplementedError
 
-    @abstractmethod
+    @abc.abstractmethod
     def num_classes(self):
         """Returns the number of classes"""
         raise NotImplementedError
@@ -102,19 +104,24 @@ class SegmentationDataset(torchvision.datasets.VisionDataset):
 
         return len(self.images)
 
-    def compute_class_weights(self, calculator:PixelCalculator, *args, **kwargs):
+    def compute_class_weights(self, 
+        weight_algorithm:WeightAlgorithm, 
+        path: typing.Union[str, pathlib.Path] = None, *args, **kwargs):
         """Basic method to calculate dataset weights.
         
         Make sure your calculator input and your dataset output are compatible through the target_transform attribute"""
 
-        for idx in tqdm(range(self.num_data_points)):
-            label = self.load_weight_label(idx)
-            calculator.update(label)
+        if path:
+            weight_algorithm.pixel_counter.load_counters(path)
+        else:
+            for idx in tqdm(range(self.num_data_points)):
+                label = self.load_weight_label(idx)
+                weight_algorithm.update(label)
 
-        weights = calculator.compute(*args, **kwargs)
+        weights = weight_algorithm.compute(*args, **kwargs)
         return weights
 
-    @abstractmethod
+    @abc.abstractmethod
     def load_weight_label(self, idx):
         """Load label to be used by the calculator"""
         raise NotImplementedError
@@ -123,18 +130,19 @@ class SegmentationDataset(torchvision.datasets.VisionDataset):
 def generate_numpy_files(self, 
     path:typing.Union[str, Path],
     dataset:SegmentationDataset, 
-    color_map:typing.MutableMapping[typing.Tuple[int,int,int], int],
-    index_name:bool = True
+    color_map:ColorMap,
+    index_name:bool = True, 
     ):
-        """Generate numpy files containing segmentation masks
+        """Generate numpy files containing segmentation masks from PIL images
+
+        :param path: Output path for the numpy files.
+        :type path: :class:`str` or :class:`pathlib.Path`
+        :param dataset: Dataset with labels as color images. It must implement the method :meth:`load_label(idx)` to retriv
         
         """
+        # Create directory
+        os.makedirs(path, exist_ok=True)
 
-        if not os.path.exists(path):
-            # logger.warning(f'{path} not found. Creating directory...')
-            pass
-
-        assert os.path.isdir(path)
         transform = torchvision.transforms.Compose([
             ColorMasktoIndexMask(colors=color_map),
             torchvision.transforms.PILToTensor()
@@ -155,6 +163,7 @@ def generate_numpy_files(self,
             
             # Save tensor
             np.save(path_name, mask.numpy())
+
 
 
 
