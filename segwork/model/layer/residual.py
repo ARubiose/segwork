@@ -13,14 +13,6 @@ import torch.nn as nn
 class ResidualBlock(nn.Module):
     """Flexible residual block """
 
-    _register_name = 'Residual block'
-
-    _default_params = {
-        'in_channels' : 64,
-        'out_channels' : 64,
-        'kernel_size' : 3
-    }
-
     def __init__(self, 
                 block: nn.Module,
                 block_args: typing.Iterable = {},
