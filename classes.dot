@@ -1,0 +1,5 @@
+digraph "classes" {
+rankdir=BT
+charset="utf-8"
+"segwork.data.dataset.SegmentationDataset" [color="black", fontcolor="black", label="{SegmentationDataset|HEIGHT : int\lWIDTH : int\lannotations\lclasses\limages\lmask_colors\lnum_classes\lnum_data_points\lsplit : str\l|compute_class_weights(weight_algorithm: WeightAlgorithm, path: typing.Union[str, pathlib.Path])\lload_image(idx: int)\lload_label(idx)\lload_weight_label(idx)\l}", shape="record", style="solid"];
+}

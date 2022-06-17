@@ -1,10 +1,15 @@
-from dataclasses import dataclass
+import os
+from pathlib import Path
 import typing
 
 import torch
 import torchvision
 import numpy as np
-import PIL
+from tqdm import tqdm
+
+from segwork.data.dataset import SegmentationDataset\
+    
+__all__ = ['ColorMasktoIndexMask', 'IndexMasktoColorMask', 'generate_numpy_files' ]
 
 COLOR_CHANNELS = 3
 GRAYSCALE = 1
@@ -66,4 +71,41 @@ class IndexMasktoColorMask(object):
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}()"
 
+ColorMap = typing.MutableMapping[typing.Tuple[int,int,int], int]
 
+def generate_numpy_files(self, 
+    path:typing.Union[str, Path],
+    dataset:SegmentationDataset, 
+    color_map:ColorMap,
+    index_name:bool = True, 
+    ):
+        """Generate numpy files containing segmentation masks from PIL images
+
+        :param path: Output path for the numpy files.
+        :type path: :class:`str` or :class:`pathlib.Path`
+        :param dataset: Dataset with labels as color images. It must implement the method :meth:`load_label(idx)` to retriv
+        
+        """
+        # Create directory
+        os.makedirs(path, exist_ok=True)
+
+        transform = torchvision.transforms.Compose([
+            ColorMasktoIndexMask(colors=color_map),
+            torchvision.transforms.PILToTensor()
+        ])
+
+
+        for idx in tqdm(range(len(dataset))):
+
+            # Path
+            file_name = f'{idx:03d}.npy' if index_name else f'{os.path.basename(dataset.annotations[idx])}.npy'
+            dir_name = os.path.join(path, 'label_numpy')
+            Path(dir_name).mkdir(parents=True, exist_ok=True)
+            path_name = os.path.join(dir_name, file_name)
+
+            # Transformation
+            label = dataset.load_label(idx)
+            mask = transform(label)
+            
+            # Save tensor
+            np.save(path_name, mask.numpy())

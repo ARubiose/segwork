@@ -1,25 +1,14 @@
-"""https://pytorch.org/tutorials/beginner/basics/data_tutorial.html
-
-https://pytorch.org/vision/stable/io.html#image
-
-Compatible with torchvision
+"""
 """
 
 import abc
-import os
-from pathlib import Path
 import pathlib
 import typing
 
-
 import torchvision
 from tqdm import tqdm
-import numpy as np
 
 from segwork.data.balance import WeightAlgorithm
-from segwork.data.augmentations import ColorMasktoIndexMask
-
-ColorMap = typing.MutableMapping[typing.Tuple[int,int,int], int]
 
 class SegmentationDataset(torchvision.datasets.VisionDataset, metaclass=abc.ABCMeta):
     """Common interface to describe segmentation datasets for supervised training
@@ -129,44 +118,6 @@ class SegmentationDataset(torchvision.datasets.VisionDataset, metaclass=abc.ABCM
     def load_weight_label(self, idx):
         """Load label to be used by the calculator"""
         raise NotImplementedError
-
-
-def generate_numpy_files(self, 
-    path:typing.Union[str, Path],
-    dataset:SegmentationDataset, 
-    color_map:ColorMap,
-    index_name:bool = True, 
-    ):
-        """Generate numpy files containing segmentation masks from PIL images
-
-        :param path: Output path for the numpy files.
-        :type path: :class:`str` or :class:`pathlib.Path`
-        :param dataset: Dataset with labels as color images. It must implement the method :meth:`load_label(idx)` to retriv
-        
-        """
-        # Create directory
-        os.makedirs(path, exist_ok=True)
-
-        transform = torchvision.transforms.Compose([
-            ColorMasktoIndexMask(colors=color_map),
-            torchvision.transforms.PILToTensor()
-        ])
-
-
-        for idx in tqdm(range(len(dataset))):
-
-            # Path
-            file_name = f'{idx:03d}.npy' if index_name else f'{os.path.basename(dataset.annotations[idx])}.npy'
-            dir_name = os.path.join(path, 'label_numpy')
-            Path(dir_name).mkdir(parents=True, exist_ok=True)
-            path_name = os.path.join(dir_name, file_name)
-
-            # Transformation
-            label = dataset.load_label(idx)
-            mask = transform(label)
-            
-            # Save tensor
-            np.save(path_name, mask.numpy())
 
 
 

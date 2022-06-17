@@ -17,7 +17,7 @@ class PixelCounter(abc.ABC):
     Args:
     """
     def __init__(self, num_classes:int):
-        self._num_classes = num_classes
+        self.num_classes = num_classes
         self._initialize_counters()
 
     @property
@@ -208,92 +208,3 @@ class LogarithmicWeight(WeightAlgorithm):
         weights = np.divide(1, np.log(self._c + logits))
         self._weights = weights
         return weights
-
-class PytorchPixelCounter(PixelCounter):
-    """Base class for class weight calculator with numpy"""
-    
-    def __init__(self, device:str = 'cuda', dtype: np.dtype = None, *args, **kwargs):
-        self._dtype = dtype if dtype else torch.int64
-        self._device = device
-        super().__init__(*args, **kwargs)
-
-    def _initialize_counters(self):
-        self._pixel_count = torch.zeros(self.num_classes, dtype=self._dtype).to(self._device)
-        self._class_count = torch.zeros(self.num_classes, dtype=self._dtype).to(self._device)
-        return self.pixel_count, self._class_count
-
-    def is_empty(self) -> bool:
-        """Return whether the calculator is empty or not"""
-        return not torch.any(self.pixel_count)
-
-    def update(self, label):
-        """Updates the total count of pixels per class"""
-        
-        label_count = torch.bincount(torch.flatten(label.type(self._dtype)), minlength=self.num_classes)
-        self._pixel_count = torch.add(self.pixel_count, label_count)
-
-        class_count = label_count > 0
-        self._class_count = torch.add(self.class_count, class_count)
-        return label_count, class_count
-
-    def load_counters(self, path:typing.Union[str, pathlib.Path], *args, **kwargs):
-        try:
-            self._pixel_count, self._class_count = torch.load(path, *args, **kwargs)
-            _logger.info(f'Pixel counts loaded from {path}')
-        except Exception as e:
-            _logger.error(f'Weights could not be loaded.')
-            raise e
-        return True 
-
-
-    def save_counters(self, path:typing.Union[str, pathlib.Path], exist_ok:bool=True, *args, **kwargs):
-
-        if os.path.exists(path):
-            if not exist_ok:
-                raise FileExistsError
-            _logger.warning(f'Weight file {path} already exists, replacing file. Pass exist_ok=False attr to prevent it.')
-
-        self._save_counters(path)
-        
-    def _save_counters(self, path, *args, **kwargs):
-        try:
-            torch.save( (self.pixel_count, self.class_count), path, *args, **kwargs)
-        except Exception as e:
-            _logger.error(f'Weights could not be saved. {e}')
-            raise e
-
-        return True
-
-    def reset_counters(self, *args, **kwargs):
-        return self._initialize_counters() 
-
-
-# class PytorchLinearWeight(PytorchCalculator):
-#     """Weight calculator base on Median frecuency"""
-
-#     def calculate(self, *args, **kwargs):
-#         """Calculate weights based on Median frequency"""
-#         self._weights = torch.exp(self.pixel_count)/torch.sum(torch.exp(self.pixel_count))
-#         return self._weights
-
-class PytorchMedianFrequencyWeight(WeightAlgorithm):
-    """Weight calculator base on Median frecuency"""
-
-    def calculate(self, *args, **kwargs):
-        """Calculate weights based on Median frequency"""
-        frequency = self.pixel_counter.pixel_count / self.pixel_counter.class_count
-        self._weights = torch.median(frequency) / frequency 
-        return self._weights
-
-# class PytorchLogarithmicWeight(PytorchCalculator):
-#     """Wight calculator based on logarithm """
-
-#     def __init__(self, c:float = 1.02, *args, **kwargs):
-#         self._c = c
-#         super().__init__(*args, **kwargs)
-
-#     def calculate(self, *args, **kwargs):
-#         """Calculate weights based on Median frequency"""
-#         logits = self.pixel_count / torch.sum(self.pixel_count)
-#         self._weights = 1 / torch.log(self._c + logits) 
-#         return self.weights
