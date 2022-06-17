@@ -71,30 +71,34 @@ class SegmentationDataset(torchvision.datasets.VisionDataset, metaclass=abc.ABCM
         """Returns a :py:class:`PIL.Image.Image` object for the specified label idx"""
         raise NotImplementedError
 
+    @property
     @abc.abstractmethod
     def images(self):
         """Returns a list of paths to the files containing the images"""
         raise NotImplementedError
 
+    @property
     @abc.abstractmethod
     def annotations(self):
         """Returns a list of paths to the files containing the ground truth masks"""
         raise NotImplementedError
 
+    @property
     @abc.abstractmethod
     def mask_colors(self):
         """Returns a mapping object of the class index and class colors"""
         raise NotImplementedError
 
-    @abc.abstractmethod
-    def num_classes(self):
-        """Returns the number of classes"""
-        raise NotImplementedError
-
     @property
+    @abc.abstractmethod
     def classes(self):
         """Returns a list of the classes"""
         raise NotImplementedError
+
+    @property
+    def num_classes(self):
+        """Returns the number of classes"""
+        return len(self.classes)
 
     @property
     def num_data_points(self):

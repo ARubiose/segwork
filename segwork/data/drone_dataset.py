@@ -65,10 +65,6 @@ class DroneDataset(SegmentationDataset):
         return { key : idx for idx, key in enumerate(self.mask_colors)}
 
     @property
-    def num_classes(self):
-        return len(self.mask_colors)
-
-    @property
     def classes(self):
         return list(self.mask_colors.values())
 

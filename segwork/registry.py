@@ -10,20 +10,14 @@ import inspect
 import typing
 import copy
 
-
 _logger = logging.getLogger(__name__)
 
-__all__ = ['ConfigurableRegistry', 'backbones_reg', 'moduls_reg']
+__all__ = ['ConfigurableRegistry']
 
 ItemType = typing.TypeVar('ItemType')
 
 class Registry(collections.abc.Mapping, abc.ABC):
     """Base abstract class for a registry.
-    
-    Subclasses must implement the methods:
-     - __len__()
-     - items()   
-     - get_item(key)
     """
 
     def __iter__(self):
@@ -428,35 +422,6 @@ class ConfigurableRegistry(ClassRegistry):
         f'\tAttribute kwargs: {self._attr_kwargs}\n'\
         f'\tAdditional info from attributes: {self._additional_args}\n'
         return f'{super().__repr__()}\n' + msg
-# REGISTRIES INITIALIZATION
-def smp_hook(key, value):
-    """Safe inclusion of key and value into smp encoders repository"""
-    smp.encoders.encoders[key] = value
-    
-try:
-    import segmentation_models_pytorch as smp
-    _initial_backbone_registry = smp.encoders.encoders
-    _register_hook = smp_hook # Retrocompatibility
-    _default_kwargs = 'params'
-    from segwork.model._smp_models import _initial_model_registry
-except Exception as e:
-    # loggin.warning(f'segmentation_pytorch not installed.')
-    print(e)
-    _initial_backbone_registry = dict()
-    _initial_model_registry = dict()
-    _register_hook = None
-    _default_kwargs = '_default_kwargs'
-
-backbones_reg = ConfigurableRegistry(
-    class_key = 'encoder',                      # Key to the nn.module class
-    initial_registry = _initial_backbone_registry,       # Initial registry. Default: None
-    attr_args = _default_kwargs,
-    additional_args= ['pretrained_settings'],
-    register_hook= _register_hook) 
-
-models_reg = ConfigurableRegistry(
-    class_key = 'model',                      # Key to the nn.module class
-    initial_registry = _initial_model_registry )
 
 
 

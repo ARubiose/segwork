@@ -9,14 +9,14 @@ import PIL
 COLOR_CHANNELS = 3
 GRAYSCALE = 1
 
-class ColorMasktoIndexMask(torch.nn.Module):
+class ColorMasktoIndexMask(object):
     """Class to transform RGB color mask to index numpy masks with the specified color mapping"""
 
     def __init__(self, colors:typing.MutableMapping, dtype:torch.dtype = None):
         self._colors = colors
         self._dtype = dtype
     
-    def forward(self, label:torch.Tensor):
+    def __call__(self, label:torch.Tensor):
         assert  isinstance(label, torch.Tensor), f'Label argument must be of type {torch.Tensor}. Got {label.__class__.__name__}'
         
         if self._dtype and self._dtype != label.dtype:
@@ -36,7 +36,7 @@ class ColorMasktoIndexMask(torch.nn.Module):
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}()"
 
-class IndexMasktoColorMask(torch.nn.Module):
+class IndexMasktoColorMask(object):
     """Class to transform index numpy masks to RGB/GreyScalewith the specified color mapping.
     
     Args:
@@ -46,7 +46,7 @@ class IndexMasktoColorMask(torch.nn.Module):
         self._colors = colors
         self._dtype = dtype
 
-    def forward(self, label:torch.Tensor, channels:int = COLOR_CHANNELS, dtype = torch.uint8):
+    def __call__(self, label:torch.Tensor, channels:int = COLOR_CHANNELS, dtype = torch.uint8):
         assert  isinstance(label, torch.Tensor), f'Label argument must be of type {torch.Tensor}. Got {label.__class__.__name__}'
          
         if self._dtype and self._dtype != label.dtype:
@@ -63,15 +63,6 @@ class IndexMasktoColorMask(torch.nn.Module):
         return mask
 
     # TODO
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}()"
-
-
-class ToTensor(torch.nn.Module):
-
-    def forward(self, image:typing.Union[PIL.Image.Image, np.ndarray]):
-        return torchvision.transforms.functional.to_tensor(image)
-
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}()"
 

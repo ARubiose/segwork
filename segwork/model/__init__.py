@@ -1,0 +1,1 @@
+from ._smp_models import backbones_reg, models_reg
