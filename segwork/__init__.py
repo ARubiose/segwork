@@ -5,4 +5,4 @@
 The framework is structured into the following modules:
 
 """
-
+from .registry import ConfigurableRegistry

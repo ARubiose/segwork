@@ -2,8 +2,6 @@ import os
 import csv
 from PIL import Image
 
-import torch
-import torchvision
 import numpy as np
 
 from segwork.data import SegmentationDataset

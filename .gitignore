@@ -29,3 +29,9 @@ outputs
 
 # Editable package under development
 *.egg-info
+
+# Config folder
+./config
+
+#
+docs/*

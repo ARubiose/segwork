@@ -73,7 +73,7 @@ class IndexMasktoColorMask(object):
 
 ColorMap = typing.MutableMapping[typing.Tuple[int,int,int], int]
 
-def generate_numpy_files(self, 
+def generate_numpy_files(
     path:typing.Union[str, Path],
     dataset:SegmentationDataset, 
     color_map:ColorMap,
@@ -90,8 +90,8 @@ def generate_numpy_files(self,
         os.makedirs(path, exist_ok=True)
 
         transform = torchvision.transforms.Compose([
-            ColorMasktoIndexMask(colors=color_map),
-            torchvision.transforms.PILToTensor()
+            torchvision.transforms.PILToTensor(),
+            ColorMasktoIndexMask(colors=color_map)
         ])
 
 

@@ -1,9 +1,13 @@
 from setuptools import setup,find_packages
 
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
 setup(
    name='segwork',
-   version='0.1.dev',
-   description='A useful framework for semantic segmentation',
+   version='0.1',
+   description='A useful set of tools for semantic segmentation',
+   long_description=long_description,
    author='Alvaro Rubio',
    author_email='alvaro.rubio.segovia"gmail.com',
    url='https://github.com/ARubiose/segwork',

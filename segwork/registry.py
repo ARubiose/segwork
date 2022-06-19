@@ -99,7 +99,7 @@ class Registry(collections.abc.Mapping, abc.ABC):
         """
         return self.get_item(key)
 
-    
+    @abc.abstractmethod
     def get_item(self, key: typing.Hashable) -> ItemType:
         """Returns registry item with specified key"""
         raise NotImplementedError
@@ -161,7 +161,7 @@ class MutableRegistry(
         self._register(key, value)
 
     @abc.abstractmethod
-    def _generate_value_from_cls(cls) -> ItemType:
+    def _generate_value_from_cls(cls: type) -> ItemType:
         raise NotImplementedError
 
     def _validate_register(self, key:typing.Hashable, value:ItemType):
@@ -186,7 +186,7 @@ class MutableRegistry(
         raise NotImplementedError(f'Not implemented in {type(self).__name__}.')
 
     @abc.abstractmethod
-    def _register(self, key: typing.Hashable, class_: type) -> None:
+    def _register(self, key: typing.Hashable, value: ItemType) -> None:
         """Registers a class with the registry."""
         raise NotImplementedError(f'Not implemented in {type(self).__name__}.')
 

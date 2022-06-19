@@ -173,7 +173,7 @@ except Exception as e:
 backbones_reg = ConfigurableRegistry(
     class_key = 'encoder',                      # Key to the nn.module class
     initial_registry = _initial_backbone_registry,       # Initial registry. Default: None
-    attr_args = _default_kwargs,
+    attr_kwargs = _default_kwargs,
     additional_args= ['pretrained_settings'],
     register_hook= _register_hook) 
 

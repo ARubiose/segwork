@@ -1,4 +1,4 @@
 from .dataset import *
 from .drone_dataset import DroneDataset
-from .augmentations import *
+from .transform import *
 from .balance import *

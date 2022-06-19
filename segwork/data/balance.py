@@ -7,7 +7,6 @@ import typing
 import pathlib
 
 import numpy as np
-import torch
 
 _logger = logging.getLogger(__name__)
 
@@ -15,9 +14,10 @@ class PixelCounter(abc.ABC):
     """Base class to count pixels in an image
     
     Args:
+        num_classes (int): Number of classes of the dataset.
     """
     def __init__(self, num_classes:int):
-        self.num_classes = num_classes
+        self._num_classes = num_classes
         self._initialize_counters()
 
     @property
@@ -83,8 +83,13 @@ class PixelCounter(abc.ABC):
         f'Pixel count:\n{self.pixel_count}.\nClass count:\n{self.class_count}'
 
 class NumpyPixelCounter(PixelCounter):
-    """Implementation of PixelCounter with numpy
-    If specified, the ndarrays used are cast to dtype for the operations"""
+    """
+    Implementation of PixelCounter with numpy.
+
+    Args:
+        dtyp (numpy.dtype) : dtype of the ndarrays to be used for the operations.
+    
+    """
 
     def __init__(self, dtype: np.dtype = None, *args, **kwargs):
         self._dtype = dtype if dtype else np.float32
@@ -147,7 +152,12 @@ class NumpyPixelCounter(PixelCounter):
         self._initialize_counters()
 
 class WeightAlgorithm(abc.ABC):
-
+    """
+    Abstract base class to represent algortihm that calculate class weights
+    
+    Args:
+        pixel_counter (PixelCounter): PixelCounter object use to calculate the weights
+    """
     def __init__( self, pixel_counter:PixelCounter):
         self._pixel_counter = pixel_counter
 
