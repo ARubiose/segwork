@@ -32,6 +32,3 @@ outputs
 
 # Config folder
 ./config
-
-#
-docs/*
