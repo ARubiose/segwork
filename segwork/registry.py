@@ -10,7 +10,7 @@ import copy
 
 _logger = logging.getLogger(__name__)
 
-__all__ = ['Registry', 'MutableRegistry', 'ClassRegistry', 'ConfigurableRegistry', 'backbones_reg', 'models_reg']
+# __all__ = ['Registry', 'MutableRegistry', 'ClassRegistry', 'ConfigurableRegistry', 'backbones_reg', 'models_reg']
 
 ItemType = typing.TypeVar('ItemType')
 
@@ -421,8 +421,7 @@ class ConfigurableRegistry(ClassRegistry):
         f'\tAdditional info from attributes: {self._additional_args}\n'
         return f'{super().__repr__()}\n' + msg
 
-### Proposed registrys
-
+### Proposed registries
 try:
     import segmentation_models_pytorch as smp
 
