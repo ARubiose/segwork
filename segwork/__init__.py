@@ -1,8 +1,9 @@
-"""SegWork is a computer vision framework for semantic segmentation.py
+"""SegWork is a set of computer vision tools for semantic segmentation
 
-[TODO] Short description 
 
-The framework is structured into the following modules:
 
 """
 from .registry import ConfigurableRegistry
+from .data.balance import *
+from .data.transform import *
+from .data.dataset import SegmentationDataset

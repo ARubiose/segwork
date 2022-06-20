@@ -9,9 +9,8 @@ class Testregistry(unittest.TestCase):
         self.registry = ConfigurableRegistry('model', )
         self.registry['test_entry'] = dict( model=str)
 
-    def test_get_item(self):
-        self.assertEqual(self.registry['test_entry'], str, "Should be 6")
-
+    def test_getitem(self):
+        self.assertEqual(self.registry['test_entry'].get('model'), str, "Should be 6")
 
 if __name__ == '__main__':
     unittest.main()

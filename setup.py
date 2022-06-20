@@ -13,5 +13,5 @@ setup(
    url='https://github.com/ARubiose/segwork',
    keywords="deep learning, semantic segmentation, development", 
    packages=find_packages(include=['segwork', 'segwork.*']),
-   # install_requires=['timm'], #external packages as dependencies
+   install_requires=['torch', 'torchvision'], #external packages as dependencies
 )
