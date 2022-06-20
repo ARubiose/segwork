@@ -18,4 +18,4 @@ pip install git+https://github.com/ARubiose/segwork.git
 *   **Álvaro Rubio** - [Arubiose](https://github.com/ARubiose)
 
 ## License
-TODO
+[MIT license](LICENSE.md)
