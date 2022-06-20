@@ -1,0 +1,10 @@
+segwork.model package
+=====================
+
+Module contents
+---------------
+
+.. automodule:: segwork.model
+   :members:
+   :undoc-members:
+   :show-inheritance:
