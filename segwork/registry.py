@@ -89,8 +89,6 @@ class Registry(collections.abc.Mapping, abc.ABC):
         
         Args:
             key (typing.Hashable): Lookup key.
-            args: Positional arguments passed to the class constructor.
-            kwargs: Keyword arguments passed to the class consturctor.
 
         Returns:
             Instance of the item matching the key
@@ -116,12 +114,10 @@ class MutableRegistry(
     Supports registering classes through decorators.
     
     Args: 
-        attr_name: If provided, :py:meth:`register` will automatically detect
-        the key to use when registering new classes.
-        unique: Determines what happens when two classes are registered with
-        the same key:
-        - ``True``: The second class will replace the first one.
-        - ``False``: A ``ValueError`` will be raised"""
+        attr_name (str): If provided, :py:meth:`register` will automatically detect the key to use when registering new classes.
+        unique (bool): Determines what happens when two classes are registered with the same key:
+          - ``True``: The second class will replace the first one.
+          - ``False``: A ``ValueError`` will be raised"""
 
     def __init__(
             self,
@@ -238,7 +234,12 @@ class ClassRegistry(MutableRegistry):
     """Description
     
     Maintains a registry of classes and provides a generic factory for
-    instantiating them. Useful for modular components. 
+    instantiating them. Useful for modular components.
+
+    Args:
+        | register_hook (typing.Callable): function that will receive the key and value as argument when registering a new item.
+        | get_hook (typing.Callable): function that will receive the value as an argument when retrieving an item.
+        | initial_registry (typing.MutableMapping): Dict-like object to initialize the registry with.
     """
 
     def __init__(self, 
@@ -345,6 +346,12 @@ class ClassRegistry(MutableRegistry):
 class ConfigurableRegistry(ClassRegistry):
     """Subclass of :py:class:`ClassRegistry` that includes default settings and additional information of the registered class.
     
+
+    Args:
+        | class_key (str):  Key to look for when retrieving the class.
+        | attr_args (str): Name of the attribute of the class that stores the default arguments.
+        | attr_kwargs (str):  The same as attr_args, but stores keyword arguments.
+        | additional_args (list):  The same as attr_args, but stores any additional information that may be useful.
     """
     def __init__(self, 
         class_key:str, 
@@ -425,7 +432,7 @@ class ConfigurableRegistry(ClassRegistry):
 try:
     import segmentation_models_pytorch as smp
 
-    def smp_hook(key, value):
+    def _smp_hook(key, value):
         """Safe inclusion of key and value into smp encoders repository"""
         smp.encoders.encoders[key] = value
 
@@ -577,7 +584,7 @@ try:
     _initial_model_registry['deeplabv3plus'] = deeplabv3_registry
 
     _initial_backbone_registry = smp.encoders.encoders
-    _register_hook = smp_hook # Retrocompatibility
+    _register_hook = _smp_hook # Retrocompatibility
     _default_kwargs = 'params'
 except Exception as e:
     # loggin.warning(f'segmentation_pytorch not installed.')

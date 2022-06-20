@@ -15,7 +15,12 @@ COLOR_CHANNELS = 3
 GRAYSCALE = 1
 
 class ColorMasktoIndexMask(object):
-    """Class to transform RGB color mask to index numpy masks with the specified color mapping"""
+    """Class to transform RGB color mask to index numpy masks with the specified color mapping
+    
+    Args:
+        | colors (dict): Dict-like object with color mappings.
+        | dtype: (torch.dtype): Type of tensor used in the transformation.
+    """
 
     def __init__(self, colors:typing.MutableMapping, dtype:torch.dtype = None):
         self._colors = colors
@@ -45,6 +50,8 @@ class IndexMasktoColorMask(object):
     """Class to transform index numpy masks to RGB/GreyScalewith the specified color mapping.
     
     Args:
+        | colors (dict): Dict-like object with color mappings.
+        | dtype: (torch.dtype): Type of tensor used in the transformation.
     """
 
     def __init__(self, colors:typing.MutableMapping, dtype:torch.dtype = torch.uint8):
@@ -81,9 +88,11 @@ def generate_numpy_files(
     ):
         """Generate numpy files containing segmentation masks from PIL images
 
-        :param path: Output path for the numpy files.
-        :type path: :class:`str` or :class:`pathlib.Path`
-        :param dataset: Dataset with labels as color images. It must implement the method :meth:`load_label(idx)` to retriv
+        Args:
+            | path (str, pathlib.Path): Output path for the numpy files.
+            | dataset (SegmentationDataset): Dataset with labels as color images. It must implement the method :meth:`load_label(idx)` to retrive labels.
+            | color_map (dict): Dict-like object with color mappings.
+            | index_name (bool) = True: If `True` generate files are named as `000.npy` onwards. 
         
         """
         # Create directory

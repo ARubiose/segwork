@@ -39,8 +39,12 @@
               <!-- Local TOC -->
               <div class="local-toc"><ul>
 <li><a class="reference internal" href="#">Welcome to Segwork’s documentation!</a></li>
-<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
-<li><a class="reference internal" href="#module-segwork.registry">Configurable registry</a></li>
+<li><a class="reference internal" href="#content">Content</a></li>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#registry">Registry</a></li>
+<li><a class="reference internal" href="#segmentation-dataset">Segmentation dataset</a></li>
+<li><a class="reference internal" href="#pixel-counter-and-weight-algorithm">Pixel counter and Weight algorithm</a></li>
+<li><a class="reference internal" href="#transformations">Transformations</a></li>
 </ul>
 </div>
         </div>
@@ -77,22 +81,95 @@
 <div class="toctree-wrapper compound">
 </div>
 </section>
-<section id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this heading"></a></h1>
+<section id="content">
+<h1>Content<a class="headerlink" href="#content" title="Permalink to this heading"></a></h1>
 <ul class="simple">
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
 <li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
-<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+<li><p><a class="reference internal" href="#installation">Installation</a></p></li>
+<li><p><a class="reference internal" href="#registry">Registry</a></p></li>
+<li><p><a class="reference internal" href="#segmentation-dataset">Segmentation dataset</a></p></li>
+<li><p><a class="reference internal" href="#pixel-counter-and-weight-algorithm">Pixel counter and Weight algorithm</a></p></li>
+<li><p><a class="reference internal" href="#transformations">Transformations</a></p></li>
 </ul>
 </section>
-<section id="module-segwork.registry">
-<span id="configurable-registry"></span><h1>Configurable registry<a class="headerlink" href="#module-segwork.registry" title="Permalink to this heading"></a></h1>
-<p>Classes for the implementation of a registry of components.</p>
-<p>Code adapted and extended from <a class="reference external" href="https://github.com/todofixthis/class-registry/blob/master/class_registry/registry.py">https://github.com/todofixthis/class-registry/blob/master/class_registry/registry.py</a></p>
+<section id="installation">
+<span id="id1"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h1>
+<p>To use Segwork, first install it using pip:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(.venv)</span> <span class="gp">$ </span>pip install git+https://github.com/ARubiose/segwork.git
+</pre></div>
+</div>
+</section>
+<section id="registry">
+<span id="id2"></span><h1>Registry<a class="headerlink" href="#registry" title="Permalink to this heading"></a></h1>
+<span class="target" id="module-segwork.registry"></span><p>Classes for the implementation of a registry of components and a basic factory method.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="segwork.registry.ClassRegistry">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">segwork.registry.</span></span><span class="sig-name descname"><span class="pre">ClassRegistry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">register_hook</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_hook</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_registry</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">MutableMapping</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.registry.ClassRegistry" title="Permalink to this definition"></a></dt>
+<dd><p>Description</p>
+<p>Maintains a registry of classes and provides a generic factory for
+instantiating them. Useful for modular components.</p>
+<dl>
+<dt>Args:</dt><dd><div class="line-block">
+<div class="line">register_hook (typing.Callable): function that will receive the key and value as argument when registering a new item.</div>
+<div class="line">get_hook (typing.Callable): function that will receive the value as an argument when retrieving an item.</div>
+<div class="line">initial_registry (typing.MutableMapping): Dict-like object to initialize the registry with.</div>
+</div>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.registry.ClassRegistry.get_class">
+<span class="sig-name descname"><span class="pre">get_class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.registry.ClassRegistry.get_class" title="Permalink to this definition"></a></dt>
+<dd><p>Get the class associated with the specified key.</p>
+<p>Value is not formatted. Value is directly the class without params. Same as get_item in this class</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>Class associated with the specified key.</p>
+</dd>
+<dt>Raise:</dt><dd><p><code class="xref py py-class docutils literal notranslate"><span class="pre">KeyError</span></code> if the key is not registered.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.registry.ClassRegistry.get_instance">
+<span class="sig-name descname"><span class="pre">get_instance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.registry.ClassRegistry.get_instance" title="Permalink to this definition"></a></dt>
+<dd><p>Create instance of class associated with the specified key</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.registry.ClassRegistry.get_item">
+<span class="sig-name descname"><span class="pre">get_item</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Hashable</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.registry.ClassRegistry.get_item" title="Permalink to this definition"></a></dt>
+<dd><p>Implementation of get item.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.registry.ClassRegistry.is_unique">
+<span class="sig-name descname"><span class="pre">is_unique</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Hashable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#segwork.registry.ClassRegistry.is_unique" title="Permalink to this definition"></a></dt>
+<dd><p>Returns whether a key exists or not in the registry</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.registry.ClassRegistry.items">
+<span class="sig-name descname"><span class="pre">items</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Hashable</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#segwork.registry.ClassRegistry.items" title="Permalink to this definition"></a></dt>
+<dd><p>Iterates over all registered classes, in the order they were
+added.</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="segwork.registry.ConfigurableRegistry">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">segwork.registry.</span></span><span class="sig-name descname"><span class="pre">ConfigurableRegistry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">class_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attr_args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'_default_args'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attr_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'_default_kwargs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.registry.ConfigurableRegistry" title="Permalink to this definition"></a></dt>
-<dd><p>Subclass of <code class="xref py py-class docutils literal notranslate"><span class="pre">ClassRegistry</span></code> that includes default settings and additional information of the registered class.</p>
+<dd><p>Subclass of <a class="reference internal" href="#segwork.registry.ClassRegistry" title="segwork.registry.ClassRegistry"><code class="xref py py-class docutils literal notranslate"><span class="pre">ClassRegistry</span></code></a> that includes default settings and additional information of the registered class.</p>
+<dl>
+<dt>Args:</dt><dd><div class="line-block">
+<div class="line">class_key (str):  Key to look for when retrieving the class.</div>
+<div class="line">attr_args (str): Name of the attribute of the class that stores the default arguments.</div>
+<div class="line">attr_kwargs (str):  The same as attr_args, but stores keyword arguments.</div>
+<div class="line">additional_args (list):  The same as attr_args, but stores any additional information that may be useful.</div>
+</div>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="segwork.registry.ConfigurableRegistry.add_additional_args">
 <span class="sig-name descname"><span class="pre">add_additional_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attr_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.registry.ConfigurableRegistry.add_additional_args" title="Permalink to this definition"></a></dt>
@@ -135,6 +212,366 @@
 <dd><p>Set field of registry</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="segwork.registry.MutableRegistry">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">segwork.registry.</span></span><span class="sig-name descname"><span class="pre">MutableRegistry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attr_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'_register_name'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unique</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.registry.MutableRegistry" title="Permalink to this definition"></a></dt>
+<dd><p>Extends <a class="reference internal" href="#segwork.registry.Registry" title="segwork.registry.Registry"><code class="xref py py-class docutils literal notranslate"><span class="pre">Registry</span></code></a> with methods to add, modify and remove registered items.</p>
+<p>Supports registering classes through decorators.</p>
+<dl>
+<dt>Args: </dt><dd><p>attr_name (str): If provided, <a class="reference internal" href="#segwork.registry.MutableRegistry.register" title="segwork.registry.MutableRegistry.register"><code class="xref py py-meth docutils literal notranslate"><span class="pre">register()</span></code></a> will automatically detect the key to use when registering new classes.
+unique (bool): Determines what happens when two classes are registered with the same key:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">True</span></code>: The second class will replace the first one.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">False</span></code>: A <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> will be raised</p></li>
+</ul>
+</div></blockquote>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.registry.MutableRegistry.register">
+<span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Hashable</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.registry.MutableRegistry.register" title="Permalink to this definition"></a></dt>
+<dd><p>Decorator that registers a class with the registry.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>key: The registry key to use for the registered class.
+Optional if the registry’s <code class="xref py py-attr docutils literal notranslate"><span class="pre">attr_name</span></code> is set.</p>
+</dd>
+<dt>Raise:</dt><dd><p><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code> if ket is not provided.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.registry.MutableRegistry.unregister">
+<span class="sig-name descname"><span class="pre">unregister</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">type</span></span></span><a class="headerlink" href="#segwork.registry.MutableRegistry.unregister" title="Permalink to this definition"></a></dt>
+<dd><p>Unregisters the class with the specified key.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>key: Lookup key.</p>
+</dd>
+<dt>Returns:</dt><dd><p>The class that was unregistered.</p>
+</dd>
+<dt>Raise:</dt><dd><p><code class="xref py py-class docutils literal notranslate"><span class="pre">KeyError</span></code> if the key is not registered.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="segwork.registry.Registry">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">segwork.registry.</span></span><span class="sig-name descname"><span class="pre">Registry</span></span><a class="headerlink" href="#segwork.registry.Registry" title="Permalink to this definition"></a></dt>
+<dd><p>Base abstract class for a registry.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.registry.Registry.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Hashable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ItemType</span></span></span><a class="headerlink" href="#segwork.registry.Registry.get" title="Permalink to this definition"></a></dt>
+<dd><p>Get the item matching the key.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>key (typing.Hashable): Lookup key.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Instance of the item matching the key</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.registry.Registry.get_item">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_item</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Hashable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ItemType</span></span></span><a class="headerlink" href="#segwork.registry.Registry.get_item" title="Permalink to this definition"></a></dt>
+<dd><p>Returns registry item with specified key</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.registry.Registry.items">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">items</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Hashable</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ItemType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#segwork.registry.Registry.items" title="Permalink to this definition"></a></dt>
+<dd><p>Get registered classes and their asociated keys.</p>
+<dl class="simple">
+<dt>Returns</dt><dd><p>A generator for iterating over registered pairs (key, class).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.registry.Registry.keys">
+<span class="sig-name descname"><span class="pre">keys</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">Hashable</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#segwork.registry.Registry.keys" title="Permalink to this definition"></a></dt>
+<dd><p>Get registered keys</p>
+<dl class="simple">
+<dt>Returns</dt><dd><p>A generator for iterating over registered keys.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.registry.Registry.values">
+<span class="sig-name descname"><span class="pre">values</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">ItemType</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#segwork.registry.Registry.values" title="Permalink to this definition"></a></dt>
+<dd><p>Get registered classes.</p>
+<dl class="simple">
+<dt>Returns</dt><dd><p>A generator for iterating over registered classes.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="segmentation-dataset">
+<span id="id3"></span><h1>Segmentation dataset<a class="headerlink" href="#segmentation-dataset" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="segwork.data.SegmentationDataset">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">segwork.data.</span></span><span class="sig-name descname"><span class="pre">SegmentationDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_transform</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transforms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'train'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.SegmentationDataset" title="Permalink to this definition"></a></dt>
+<dd><p>Common interface to describe segmentation datasets for supervised training</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="segwork.data.SegmentationDataset.annotations">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">annotations</span></span><a class="headerlink" href="#segwork.data.SegmentationDataset.annotations" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of paths to the files containing the ground truth masks</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="segwork.data.SegmentationDataset.classes">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">classes</span></span><a class="headerlink" href="#segwork.data.SegmentationDataset.classes" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of the classes</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.data.SegmentationDataset.compute_class_weights">
+<span class="sig-name descname"><span class="pre">compute_class_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weight_algorithm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#segwork.data.balance.WeightAlgorithm" title="segwork.data.balance.WeightAlgorithm"><span class="pre">WeightAlgorithm</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Path</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.SegmentationDataset.compute_class_weights" title="Permalink to this definition"></a></dt>
+<dd><p>Basic method to calculate dataset weights.</p>
+<p>Make sure your calculator input and your dataset output are compatible through the target_transform attribute</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="segwork.data.SegmentationDataset.images">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">images</span></span><a class="headerlink" href="#segwork.data.SegmentationDataset.images" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of paths to the files containing the images</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.data.SegmentationDataset.load_image">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.SegmentationDataset.load_image" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a <code class="xref py py-class docutils literal notranslate"><span class="pre">PIL.Image.Image</span></code> object for the specified image idx</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.data.SegmentationDataset.load_label">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.SegmentationDataset.load_label" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a <code class="xref py py-class docutils literal notranslate"><span class="pre">PIL.Image.Image</span></code> object for the specified label idx</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.data.SegmentationDataset.load_weight_label">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_weight_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.SegmentationDataset.load_weight_label" title="Permalink to this definition"></a></dt>
+<dd><p>Load label to be used by the calculator</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="segwork.data.SegmentationDataset.mask_colors">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">mask_colors</span></span><a class="headerlink" href="#segwork.data.SegmentationDataset.mask_colors" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a mapping object of the class index and class colors</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="segwork.data.SegmentationDataset.num_classes">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">num_classes</span></span><a class="headerlink" href="#segwork.data.SegmentationDataset.num_classes" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the number of classes</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="segwork.data.SegmentationDataset.num_data_points">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">num_data_points</span></span><a class="headerlink" href="#segwork.data.SegmentationDataset.num_data_points" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the number of datapoints in the dataset</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="pixel-counter-and-weight-algorithm">
+<span id="id4"></span><h1>Pixel counter and Weight algorithm<a class="headerlink" href="#pixel-counter-and-weight-algorithm" title="Permalink to this heading"></a></h1>
+<span class="target" id="module-segwork.data.balance"></span><dl class="py class">
+<dt class="sig sig-object py" id="segwork.data.balance.LinearWeight">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">segwork.data.balance.</span></span><span class="sig-name descname"><span class="pre">LinearWeight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pixel_counter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#segwork.data.balance.PixelCounter" title="segwork.data.balance.PixelCounter"><span class="pre">PixelCounter</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.balance.LinearWeight" title="Permalink to this definition"></a></dt>
+<dd><p>Linear weight algorithm for calculation of weights</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.data.balance.LinearWeight.compute">
+<span class="sig-name descname"><span class="pre">compute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.balance.LinearWeight.compute" title="Permalink to this definition"></a></dt>
+<dd><p>Compute method to calculate weights based on a linear relation</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="segwork.data.balance.LogarithmicWeight">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">segwork.data.balance.</span></span><span class="sig-name descname"><span class="pre">LogarithmicWeight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.02</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.balance.LogarithmicWeight" title="Permalink to this definition"></a></dt>
+<dd><p>Logarithmic algorithm for calculation of weights</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.data.balance.LogarithmicWeight.calculate">
+<span class="sig-name descname"><span class="pre">calculate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.balance.LogarithmicWeight.calculate" title="Permalink to this definition"></a></dt>
+<dd><p>Compute method to calculate weights based on logarithms</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="segwork.data.balance.NumpyMedianFrequencyWeight">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">segwork.data.balance.</span></span><span class="sig-name descname"><span class="pre">NumpyMedianFrequencyWeight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pixel_counter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#segwork.data.balance.PixelCounter" title="segwork.data.balance.PixelCounter"><span class="pre">PixelCounter</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.balance.NumpyMedianFrequencyWeight" title="Permalink to this definition"></a></dt>
+<dd><p>Median frequency algorithm for calculation of weights</p>
+<p><a class="reference external" href="https://arxiv.org/pdf/1411.4734.pdf">https://arxiv.org/pdf/1411.4734.pdf</a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.data.balance.NumpyMedianFrequencyWeight.compute">
+<span class="sig-name descname"><span class="pre">compute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.balance.NumpyMedianFrequencyWeight.compute" title="Permalink to this definition"></a></dt>
+<dd><p>Compute method to calculate weights based on Median frequency</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="segwork.data.balance.NumpyPixelCounter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">segwork.data.balance.</span></span><span class="sig-name descname"><span class="pre">NumpyPixelCounter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dtype</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.balance.NumpyPixelCounter" title="Permalink to this definition"></a></dt>
+<dd><p>Implementation of PixelCounter with numpy.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>dtyp (numpy.dtype) : dtype of the ndarrays to be used for the operations.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.data.balance.NumpyPixelCounter.is_empty">
+<span class="sig-name descname"><span class="pre">is_empty</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#segwork.data.balance.NumpyPixelCounter.is_empty" title="Permalink to this definition"></a></dt>
+<dd><p>Return whether the calculator is empty or not</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.data.balance.NumpyPixelCounter.load_counters">
+<span class="sig-name descname"><span class="pre">load_counters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Path</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.balance.NumpyPixelCounter.load_counters" title="Permalink to this definition"></a></dt>
+<dd><p>Update object status en returns the loaded counters</p>
+<dl class="simple">
+<dt>Raise:</dt><dd><p>FileNotFoundError</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.data.balance.NumpyPixelCounter.save_counters">
+<span class="sig-name descname"><span class="pre">save_counters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Path</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exist_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.balance.NumpyPixelCounter.save_counters" title="Permalink to this definition"></a></dt>
+<dd><p>Saves counters in a file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.data.balance.NumpyPixelCounter.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.balance.NumpyPixelCounter.update" title="Permalink to this definition"></a></dt>
+<dd><p>Updates the total count of pixels per class</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="segwork.data.balance.PixelCounter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">segwork.data.balance.</span></span><span class="sig-name descname"><span class="pre">PixelCounter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.balance.PixelCounter" title="Permalink to this definition"></a></dt>
+<dd><p>Base class to count pixels in an image</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>num_classes (int): Number of classes of the dataset.</p>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="segwork.data.balance.PixelCounter.class_count">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">class_count</span></span><a class="headerlink" href="#segwork.data.balance.PixelCounter.class_count" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the data structure with the class count.</p>
+<p>The class count represents the total number of pixel in images where class <cite>c</cite> is present</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.data.balance.PixelCounter.is_empty">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_empty</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.balance.PixelCounter.is_empty" title="Permalink to this definition"></a></dt>
+<dd><p>Return whether the calculator is empty or not</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.data.balance.PixelCounter.load_counters">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_counters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.balance.PixelCounter.load_counters" title="Permalink to this definition"></a></dt>
+<dd><p>Update object status en returns the loaded counters</p>
+<dl class="simple">
+<dt>Raise:</dt><dd><p>FileNotFoundError</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="segwork.data.balance.PixelCounter.pixel_count">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pixel_count</span></span><a class="headerlink" href="#segwork.data.balance.PixelCounter.pixel_count" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the data structure with the pixel count</p>
+<p>The pixel count represents the total number of pixel of class <cite>c</cite></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.data.balance.PixelCounter.save_counters">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">save_counters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.balance.PixelCounter.save_counters" title="Permalink to this definition"></a></dt>
+<dd><p>Saves counters in a file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.data.balance.PixelCounter.update">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.balance.PixelCounter.update" title="Permalink to this definition"></a></dt>
+<dd><p>Updates the state of the pixel counters</p>
+<p>It will update the number of pixels per class</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="segwork.data.balance.WeightAlgorithm">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">segwork.data.balance.</span></span><span class="sig-name descname"><span class="pre">WeightAlgorithm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pixel_counter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#segwork.data.balance.PixelCounter" title="segwork.data.balance.PixelCounter"><span class="pre">PixelCounter</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.balance.WeightAlgorithm" title="Permalink to this definition"></a></dt>
+<dd><p>Abstract base class to represent algortihm that calculate class weights</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>pixel_counter (PixelCounter): PixelCounter object use to calculate the weights</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="segwork.data.balance.WeightAlgorithm.compute">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.balance.WeightAlgorithm.compute" title="Permalink to this definition"></a></dt>
+<dd><p>Compute weights</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="transformations">
+<span id="id5"></span><h1>Transformations<a class="headerlink" href="#transformations" title="Permalink to this heading"></a></h1>
+<span class="target" id="module-segwork.data.transform"></span><dl class="py class">
+<dt class="sig sig-object py" id="segwork.data.transform.ColorMasktoIndexMask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">segwork.data.transform.</span></span><span class="sig-name descname"><span class="pre">ColorMasktoIndexMask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">colors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">MutableMapping</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dtype</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.transform.ColorMasktoIndexMask" title="Permalink to this definition"></a></dt>
+<dd><p>Class to transform RGB color mask to index numpy masks with the specified color mapping</p>
+<dl>
+<dt>Args:</dt><dd><div class="line-block">
+<div class="line">colors (dict): Dict-like object with color mappings.</div>
+<div class="line">dtype: (torch.dtype): Type of tensor used in the transformation.</div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="segwork.data.transform.IndexMasktoColorMask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">segwork.data.transform.</span></span><span class="sig-name descname"><span class="pre">IndexMasktoColorMask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">colors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">MutableMapping</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dtype</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">torch.uint8</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.transform.IndexMasktoColorMask" title="Permalink to this definition"></a></dt>
+<dd><p>Class to transform index numpy masks to RGB/GreyScalewith the specified color mapping.</p>
+<dl>
+<dt>Args:</dt><dd><div class="line-block">
+<div class="line">colors (dict): Dict-like object with color mappings.</div>
+<div class="line">dtype: (torch.dtype): Type of tensor used in the transformation.</div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="segwork.data.transform.generate_numpy_files">
+<span class="sig-prename descclassname"><span class="pre">segwork.data.transform.</span></span><span class="sig-name descname"><span class="pre">generate_numpy_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Path</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#segwork.data.SegmentationDataset" title="segwork.data.dataset.SegmentationDataset"><span class="pre">SegmentationDataset</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">MutableMapping</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#segwork.data.transform.generate_numpy_files" title="Permalink to this definition"></a></dt>
+<dd><p>Generate numpy files containing segmentation masks from PIL images</p>
+<dl>
+<dt>Args:</dt><dd><div class="line-block">
+<div class="line">path (str, pathlib.Path): Output path for the numpy files.</div>
+<div class="line">dataset (SegmentationDataset): Dataset with labels as color images. It must implement the method <code class="xref py py-meth docutils literal notranslate"><span class="pre">load_label(idx)()</span></code> to retrive labels.</div>
+<div class="line">color_map (dict): Dict-like object with color mappings.</div>
+<div class="line">index_name (bool) = True: If <cite>True</cite> generate files are named as <cite>000.npy</cite> onwards. </div>
+</div>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

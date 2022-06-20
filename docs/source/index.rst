@@ -17,14 +17,53 @@ Welcome to Segwork's documentation!
    :caption: Contents:
 
 
-Indices and tables
+Content
 ==================
 
 * :ref:`genindex`
 * :ref:`modindex`
-* :ref:`search`
+* `Installation`_
+* `Registry`_
+* `Segmentation dataset`_
+* `Pixel counter and Weight algorithm`_
+* `Transformations`_
+.. * :ref:`search`
 
-Configurable registry
-=====================
+.. _Installation:
+
+Installation
+==================
+
+To use Segwork, first install it using pip:
+
+.. code-block:: console
+
+   (.venv) $ pip install git+https://github.com/ARubiose/segwork.git
+
+.. _Registry:
+
+Registry
+========
 .. automodule:: segwork.registry
+   :members:
+
+.. _Segmentation dataset:
+
+Segmentation dataset
+====================
+.. autoclass:: segwork.data.SegmentationDataset
+   :members:
+
+.. _Pixel counter and Weight algorithm:
+
+Pixel counter and Weight algorithm
+==================================
+.. automodule:: segwork.data.balance
+   :members:
+
+.. _Transformations:
+
+Transformations
+=====================
+.. automodule:: segwork.data.transform
    :members:
