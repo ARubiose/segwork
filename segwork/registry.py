@@ -1,7 +1,5 @@
 """
-Classes for the implementation of a registry of components.
-
-Code adapted and extended from https://github.com/todofixthis/class-registry/blob/master/class_registry/registry.py
+Classes for the implementation of a registry of components and a basic factory method.
 """
 import abc
 import logging
@@ -12,7 +10,7 @@ import copy
 
 _logger = logging.getLogger(__name__)
 
-__all__ = ['ConfigurableRegistry', 'backbones_reg', 'models_reg']
+__all__ = ['Registry', 'MutableRegistry', 'ClassRegistry', 'ConfigurableRegistry', 'backbones_reg', 'models_reg']
 
 ItemType = typing.TypeVar('ItemType')
 
